@@ -65,7 +65,7 @@ const BookingConfirmation = () => {
             is_priority: true,
             email: formData.email,
             customer_name: customerName,
-            user_id: null // Pas d'utilisateur authentifié pour les réservations prioritaires
+            user_id: null
           })
           .select();
 
@@ -76,37 +76,35 @@ const BookingConfirmation = () => {
 
         console.log("Réservation prioritaire enregistrée avec succès:", bookingData);
 
-        // Store data in temp_bookings_data for future reference
-        const { error: tempDataError } = await supabase.from('temp_bookings_data').insert({
-          booking_data: formData
-        });
+        // Forcer l'envoi d'email de confirmation
+        try {
+          const { error: emailError } = await supabase.functions.invoke("force-email-booking-confirmation", {
+            body: {
+              bookingId: bookingData[0].id,
+              email: formData.email,
+              customerName: customerName,
+              topic: formData.topic || formData.consultationTopic || 'Bilan Stratégique',
+              date: bookingDate,
+              startTime: startTime,
+              endTime: endTime,
+              message: formData.questions || formData.whyDomani || formData.message || ''
+            }
+          });
 
-        if (tempDataError) {
-          console.error("Erreur lors de l'enregistrement des données temporaires:", tempDataError);
+          if (emailError) {
+            console.error("Erreur lors de l'envoi de l'email:", emailError);
+          } else {
+            console.log("Email de confirmation envoyé avec succès");
+          }
+        } catch (emailError) {
+          console.error("Erreur lors de l'envoi de l'email:", emailError);
         }
 
-        // Call the priority booking request function to send emails
-        console.log("Calling priority-booking-request function...");
-        const { data: emailData, error: emailError } = await supabase.functions.invoke("priority-booking-request", {
-          body: { bookingData: formData }
+        toast({
+          title: "Demande envoyée avec succès",
+          description: "Votre demande prioritaire a été enregistrée. Un email de confirmation vous a été envoyé.",
+          variant: "default",
         });
-
-        if (emailError) {
-          console.error("Erreur lors de l'envoi de l'e-mail de confirmation:", emailError);
-          // Don't throw error here, booking is already saved
-          toast({
-            title: "Réservation enregistrée",
-            description: "Votre demande prioritaire a été enregistrée, mais l'envoi de l'email de confirmation a échoué. Notre équipe vous contactera directement.",
-            variant: "default",
-          });
-        } else {
-          console.log("Email de confirmation envoyé avec succès:", emailData);
-          toast({
-            title: "Demande envoyée avec succès",
-            description: "Votre demande prioritaire a été enregistrée. Vous recevrez une confirmation par email.",
-            variant: "default",
-          });
-        }
 
         setSubmitted(true);
       } else {

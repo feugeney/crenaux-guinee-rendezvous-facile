@@ -41,12 +41,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Envoi d'email de test à: ${to}`);
+    console.log(`Tentative d'envoi d'email à: ${to}`);
 
-    // Utiliser des données de test par défaut
-    const mailgunApiKey = Deno.env.get("MAILGUN_API_KEY") || "test-key";
-    const mailgunDomain = Deno.env.get("MAILGUN_DOMAIN") || "sandbox-test.mailgun.org";
-    const mailgunFrom = Deno.env.get("MAILGUN_FROM") || "Dom Consulting <test@domconsulting.com>";
+    // Récupérer les variables d'environnement
+    const mailgunApiKey = Deno.env.get("MAILGUN_API_KEY");
+    const mailgunDomain = Deno.env.get("MAILGUN_DOMAIN");
+    const mailgunFrom = Deno.env.get("MAILGUN_FROM");
 
     // Validation de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,15 +63,18 @@ serve(async (req) => {
       );
     }
 
-    // Mode test activé si pas de vraies clés configurées
-    if (mailgunApiKey === "test-key" || !Deno.env.get("MAILGUN_API_KEY")) {
-      console.log("Mode test activé - simulation d'envoi d'email");
-      console.log(`- De: ${mailgunFrom}`);
+    // Vérifier si les secrets Mailgun sont configurés
+    const hasMailgunConfig = mailgunApiKey && mailgunDomain && mailgunFrom;
+    
+    if (!hasMailgunConfig) {
+      // Mode test - simulation complète
+      console.log("=== MODE TEST ACTIVÉ ===");
+      console.log("Aucune configuration Mailgun détectée, simulation d'envoi...");
       console.log(`- À: ${to}`);
       console.log(`- Sujet: ${subject}`);
-      console.log(`- Contenu text: ${text.substring(0, 100)}...`);
+      console.log(`- Contenu: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
       if (html) {
-        console.log(`- Contenu HTML: ${html.substring(0, 100)}...`);
+        console.log(`- HTML: ${html.substring(0, 100)}${html.length > 100 ? '...' : ''}`);
       }
       
       // Simuler un délai d'envoi réaliste
@@ -80,13 +83,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true,
-          message: "Email envoyé avec succès (mode test - aucun email réel envoyé)",
+          message: "Email simulé avec succès (mode test - aucun email réel envoyé)",
           details: {
-            from: mailgunFrom,
+            from: "Dom Consulting <test@domconsulting.com>",
             to: to,
             subject: subject,
-            mode: "test",
-            timestamp: new Date().toISOString()
+            mode: "test_simulation",
+            timestamp: new Date().toISOString(),
+            note: "Pour envoyer de vrais emails, configurez les secrets MAILGUN_API_KEY, MAILGUN_DOMAIN et MAILGUN_FROM"
           }
         }),
         { 
@@ -96,8 +100,9 @@ serve(async (req) => {
       );
     }
 
-    // Code pour l'envoi réel via Mailgun (seulement si les vraies clés sont configurées)
-    console.log("Envoi via Mailgun API...");
+    // Mode production - envoi réel via Mailgun
+    console.log("=== MODE PRODUCTION ===");
+    console.log("Configuration Mailgun détectée, envoi via API...");
     
     const formData = new FormData();
     formData.append("from", mailgunFrom);
@@ -136,6 +141,7 @@ serve(async (req) => {
           from: mailgunFrom,
           to: to,
           subject: subject,
+          mode: "production",
           mailgunResponse: responseData
         }
       }),

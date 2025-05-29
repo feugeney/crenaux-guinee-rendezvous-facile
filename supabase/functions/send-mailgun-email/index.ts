@@ -43,36 +43,50 @@ serve(async (req) => {
 
     console.log(`Envoi d'email de test à: ${to}`);
 
-    // Utiliser des données de test
-    const mailgunApiKey = Deno.env.get("MAILGUN_API_KEY") || "key-test123456789";
+    // Utiliser des données de test par défaut
+    const mailgunApiKey = Deno.env.get("MAILGUN_API_KEY") || "test-key";
     const mailgunDomain = Deno.env.get("MAILGUN_DOMAIN") || "sandbox-test.mailgun.org";
-    const mailgunFrom = Deno.env.get("MAILGUN_FROM") || "Dom Consulting <test@example.com>";
+    const mailgunFrom = Deno.env.get("MAILGUN_FROM") || "Dom Consulting <test@domconsulting.com>";
 
     // Validation de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(to)) {
-      throw new Error("Adresse email destinataire invalide");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Adresse email destinataire invalide" 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
     }
 
-    // En mode test, simuler l'envoi réussi
-    if (mailgunApiKey === "key-test123456") {
+    // Mode test activé si pas de vraies clés configurées
+    if (mailgunApiKey === "test-key" || !Deno.env.get("MAILGUN_API_KEY")) {
       console.log("Mode test activé - simulation d'envoi d'email");
       console.log(`- De: ${mailgunFrom}`);
       console.log(`- À: ${to}`);
       console.log(`- Sujet: ${subject}`);
+      console.log(`- Contenu text: ${text.substring(0, 100)}...`);
+      if (html) {
+        console.log(`- Contenu HTML: ${html.substring(0, 100)}...`);
+      }
       
-      // Simuler un délai d'envoi
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simuler un délai d'envoi réaliste
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       return new Response(
         JSON.stringify({ 
           success: true,
-          message: "Email envoyé avec succès (mode test)",
+          message: "Email envoyé avec succès (mode test - aucun email réel envoyé)",
           details: {
             from: mailgunFrom,
             to: to,
             subject: subject,
-            mode: "test"
+            mode: "test",
+            timestamp: new Date().toISOString()
           }
         }),
         { 
@@ -82,7 +96,9 @@ serve(async (req) => {
       );
     }
 
-    // Préparer les données pour Mailgun
+    // Code pour l'envoi réel via Mailgun (seulement si les vraies clés sont configurées)
+    console.log("Envoi via Mailgun API...");
+    
     const formData = new FormData();
     formData.append("from", mailgunFrom);
     formData.append("to", to);
@@ -92,12 +108,6 @@ serve(async (req) => {
       formData.append("html", html);
     }
 
-    console.log("Envoi via Mailgun API...");
-    console.log(`- Domaine: ${mailgunDomain}`);
-    console.log(`- De: ${mailgunFrom}`);
-    console.log(`- À: ${to}`);
-
-    // Appel à l'API Mailgun
     const response = await fetch(
       `https://api.mailgun.net/v3/${mailgunDomain}/messages`,
       {
@@ -109,19 +119,19 @@ serve(async (req) => {
       }
     );
 
-    const responseData = await response.text();
-    console.log("Réponse Mailgun:", responseData);
-
     if (!response.ok) {
-      throw new Error(`Erreur Mailgun: ${response.status} - ${responseData}`);
+      const errorText = await response.text();
+      console.error(`Erreur Mailgun: ${response.status} - ${errorText}`);
+      throw new Error(`Erreur Mailgun: ${response.status} - ${errorText}`);
     }
 
-    console.log(`Email envoyé avec succès via Mailgun à: ${to}`);
+    const responseData = await response.text();
+    console.log("Email envoyé avec succès via Mailgun:", responseData);
     
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: "Email envoyé avec succès",
+        message: "Email envoyé avec succès via Mailgun",
         details: {
           from: mailgunFrom,
           to: to,

@@ -22,11 +22,10 @@ import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 
 interface ExpressSlot {
   id: string;
-  date: string;
+  specific_date: string;
   start_time: string;
   end_time: string;
   available: boolean;
-  is_express: boolean;
   created_at: string;
 }
 
@@ -51,23 +50,14 @@ const AdminExpressSlots = () => {
         .from('time_slots')
         .select('*')
         .eq('is_recurring', false)
+        .not('specific_date', 'is', null)
         .gte('specific_date', new Date().toISOString().split('T')[0])
         .order('specific_date', { ascending: true });
 
       if (error) throw error;
       
-      // Map data to match our interface
-      const mappedData = (data || []).map(slot => ({
-        id: slot.id,
-        date: slot.specific_date,
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        available: slot.available,
-        is_express: true,
-        created_at: slot.created_at
-      }));
-      
-      setSlots(mappedData);
+      console.log('Express slots fetched:', data);
+      setSlots(data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des créneaux express:', error);
       toast({
@@ -91,7 +81,8 @@ const AdminExpressSlots = () => {
     }
 
     try {
-      const { error } = await supabase
+      const slotDate = new Date(newSlot.date);
+      const { data, error } = await supabase
         .from('time_slots')
         .insert({
           specific_date: newSlot.date,
@@ -99,11 +90,13 @@ const AdminExpressSlots = () => {
           end_time: newSlot.end_time,
           available: true,
           is_recurring: false,
-          day_of_week: new Date(newSlot.date).getDay()
-        });
+          day_of_week: slotDate.getDay()
+        })
+        .select();
 
       if (error) throw error;
 
+      console.log('Express slot created:', data);
       toast({
         title: "Créneau créé",
         description: "Le créneau express a été créé avec succès",
@@ -260,7 +253,7 @@ const AdminExpressSlots = () => {
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4 text-gray-500" />
                         <span className="font-medium">
-                          {format(new Date(slot.date), 'PPP', { locale: fr })}
+                          {format(new Date(slot.specific_date), 'PPP', { locale: fr })}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

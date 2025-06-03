@@ -37,7 +37,8 @@ export const createOffer = async (offer: Partial<Offer>) => {
       featured: offer.featured || false,
       category: offer.category || "coaching"
     }])
-    .select();
+    .select()
+    .single();
   
   if (error) {
     console.error('Error creating offer:', error);
@@ -59,7 +60,8 @@ export const updateOffer = async (id: string, offer: Partial<Offer>) => {
       category: offer.category || "coaching"
     })
     .eq('id', id)
-    .select();
+    .select()
+    .single();
   
   if (error) {
     console.error('Error updating offer:', error);

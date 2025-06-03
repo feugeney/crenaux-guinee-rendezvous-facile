@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Offer } from "@/services/offerService";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface OfferFormProps {
   currentOffer: Partial<Offer> | null;
@@ -56,7 +57,7 @@ const OfferForm = ({
             : "Remplissez les détails pour créer une nouvelle offre."}
         </DialogDescription>
       </DialogHeader>
-      <div className="grid gap-4 py-4">
+      <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
         <div className="grid gap-2">
           <Label htmlFor="title" className="text-left">Titre *</Label>
           <Input
@@ -110,14 +111,12 @@ const OfferForm = ({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="image_url" className="text-left">URL de l'image</Label>
-          <Input
-            id="image_url"
+          <ImageUpload
             value={currentOffer?.image_url || ""}
-            onChange={(e) =>
-              onChange({ ...currentOffer!, image_url: e.target.value })
+            onChange={(imageUrl) =>
+              onChange({ ...currentOffer!, image_url: imageUrl })
             }
-            placeholder="/lovable-uploads/image.png"
+            label="Image de l'offre"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -144,7 +143,7 @@ const OfferForm = ({
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Sauvegarder
+              {currentOffer?.id ? "Mettre à jour" : "Créer"}
             </>
           )}
         </Button>

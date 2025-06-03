@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 import DashboardHeader from '@/components/admin/DashboardHeader';
 import DashboardStats from '@/components/admin/DashboardStats';
@@ -9,8 +8,6 @@ import RecentActivity from '@/components/admin/RecentActivity';
 import PoliticalLaunchCard from '@/components/admin/PoliticalLaunchCard';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-
   return (
     <AdminDashboardLayout>
       <div className="space-y-8">
@@ -19,11 +16,9 @@ const AdminDashboard = () => {
         <DashboardStats />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
             <QuickActions />
-            <div className="mt-8">
-              <RecentActivity />
-            </div>
+            <RecentActivity />
           </div>
           
           <div className="space-y-6">

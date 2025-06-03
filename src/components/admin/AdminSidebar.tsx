@@ -12,10 +12,13 @@ import {
   FileText, 
   Users,
   LogOut,
-  Crown
+  Crown,
+  Clock,
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 
-export const Sidebar = () => {
+export const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,15 +40,32 @@ export const Sidebar = () => {
       path: '/admin/time-slots'
     },
     {
-      title: 'Offres & Services',
+      title: 'Gestion des offres',
       icon: <Package className="h-5 w-5" />,
       path: '/admin/offers'
+    },
+    {
+      title: 'Demandes prioritaires',
+      icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+      path: '/admin/priority-requests',
+      badge: 'Urgent'
+    },
+    {
+      title: 'Créneaux express',
+      icon: <Clock className="h-5 w-5 text-emerald-500" />,
+      path: '/admin/express-slots',
+      badge: 'Express'
     },
     {
       title: 'Lancement Politique',
       icon: <Crown className="h-5 w-5 text-amber-500" />,
       path: '/admin/political-launch',
       badge: 'VIP'
+    },
+    {
+      title: 'Réservations',
+      icon: <CheckCircle className="h-5 w-5" />,
+      path: '/admin/bookings'
     },
     {
       title: 'Notifications',
@@ -70,7 +90,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen shadow-sm">
+    <div className="fixed left-0 top-0 w-64 bg-white border-r border-gray-200 h-screen shadow-lg z-50">
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-8">
           <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -82,7 +102,7 @@ export const Sidebar = () => {
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
           {menuItems.map((item) => (
             <Button
               key={item.path}
@@ -97,7 +117,14 @@ export const Sidebar = () => {
               {item.icon}
               <span className="ml-3 flex-1 text-left">{item.title}</span>
               {item.badge && (
-                <Badge variant="secondary" className="ml-2 bg-amber-100 text-amber-800">
+                <Badge 
+                  variant="secondary" 
+                  className={`ml-2 ${
+                    item.badge === 'Urgent' ? 'bg-red-100 text-red-800' :
+                    item.badge === 'Express' ? 'bg-emerald-100 text-emerald-800' :
+                    'bg-amber-100 text-amber-800'
+                  }`}
+                >
                   {item.badge}
                 </Badge>
               )}
@@ -105,7 +132,7 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        <div className="mt-auto pt-8">
+        <div className="absolute bottom-6 left-6 right-6">
           <Button
             variant="outline"
             className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"

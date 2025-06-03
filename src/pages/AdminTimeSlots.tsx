@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, CalendarPlus, Clock } from 'lucide-react';
 import TimeSlotList from '@/components/admin/TimeSlotList';
@@ -8,6 +7,7 @@ import TimeSlotForm from '@/components/admin/TimeSlotForm';
 import BulkTimeSlotCreator from '@/components/admin/BulkTimeSlotCreator';
 import { supabase } from '@/lib/supabase';
 import { TimeSlot } from '@/types';
+import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 
 const AdminTimeSlots = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -123,52 +123,59 @@ const AdminTimeSlots = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h1 className="text-2xl font-bold mb-4 md:mb-0">Gestion des créneaux horaires</h1>
+    <AdminDashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestion des créneaux horaires</h1>
+            <p className="text-gray-600 mt-2">
+              Configurez vos disponibilités et créneaux de consultation
+            </p>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Créneaux
+            </TabsTrigger>
+            <TabsTrigger value="add" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              {selectedTimeSlot ? "Modifier un créneau" : "Ajouter un créneau"}
+            </TabsTrigger>
+            <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <CalendarPlus className="h-4 w-4" />
+              Création en masse
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list">
+            <TimeSlotList
+              timeSlots={timeSlots}
+              onEdit={handleEditTimeSlot}
+              onDelete={handleDeleteTimeSlot}
+              loading={loading}
+            />
+          </TabsContent>
+
+          <TabsContent value="add">
+            <TimeSlotForm
+              initialData={selectedTimeSlot}
+              onSubmit={handleTimeSlotSave}
+              onCancel={() => {
+                setActiveTab('list');
+                setSelectedTimeSlot(null);
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="bulk">
+            <BulkTimeSlotCreator />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Créneaux
-          </TabsTrigger>
-          <TabsTrigger value="add" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {selectedTimeSlot ? "Modifier un créneau" : "Ajouter un créneau"}
-          </TabsTrigger>
-          <TabsTrigger value="bulk" className="flex items-center gap-2">
-            <CalendarPlus className="h-4 w-4" />
-            Création en masse
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list">
-          <TimeSlotList
-            timeSlots={timeSlots}
-            onEdit={handleEditTimeSlot}
-            onDelete={handleDeleteTimeSlot}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent value="add">
-          <TimeSlotForm
-            initialData={selectedTimeSlot}
-            onSubmit={handleTimeSlotSave}
-            onCancel={() => {
-              setActiveTab('list');
-              setSelectedTimeSlot(null);
-            }}
-          />
-        </TabsContent>
-
-        <TabsContent value="bulk">
-          <BulkTimeSlotCreator />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </AdminDashboardLayout>
   );
 };
 

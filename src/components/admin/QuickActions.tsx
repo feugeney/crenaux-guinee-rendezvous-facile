@@ -12,7 +12,6 @@ import {
   Crown,
   Settings,
   AlertTriangle,
-  Clock,
   CheckCircle
 } from 'lucide-react';
 
@@ -42,13 +41,6 @@ const QuickActions = () => {
       color: 'bg-amber-500 hover:bg-amber-600'
     },
     {
-      title: 'Créneaux express',
-      description: 'Gestion express',
-      icon: <Clock className="h-5 w-5" />,
-      action: () => navigate('/admin/express-slots'),
-      color: 'bg-emerald-500 hover:bg-emerald-600'
-    },
-    {
       title: 'Programme Politique',
       description: 'Gestion VIP',
       icon: <Crown className="h-5 w-5" />,
@@ -75,6 +67,13 @@ const QuickActions = () => {
       icon: <Bell className="h-5 w-5" />,
       action: () => navigate('/admin/notifications'),
       color: 'bg-rose-500 hover:bg-rose-600'
+    },
+    {
+      title: 'Paramètres',
+      description: 'Configuration',
+      icon: <Settings className="h-5 w-5" />,
+      action: () => navigate('/admin/settings'),
+      color: 'bg-gray-500 hover:bg-gray-600'
     }
   ];
 

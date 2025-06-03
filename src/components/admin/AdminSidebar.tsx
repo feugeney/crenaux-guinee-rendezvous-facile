@@ -13,7 +13,6 @@ import {
   Users,
   LogOut,
   Crown,
-  Clock,
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
@@ -49,12 +48,6 @@ export const AdminSidebar = () => {
       icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
       path: '/admin/priority-requests',
       badge: 'Urgent'
-    },
-    {
-      title: 'Créneaux express',
-      icon: <Clock className="h-5 w-5 text-emerald-500" />,
-      path: '/admin/express-slots',
-      badge: 'Express'
     },
     {
       title: 'Lancement Politique',
@@ -121,7 +114,6 @@ export const AdminSidebar = () => {
                   variant="secondary" 
                   className={`ml-2 ${
                     item.badge === 'Urgent' ? 'bg-red-100 text-red-800' :
-                    item.badge === 'Express' ? 'bg-emerald-100 text-emerald-800' :
                     'bg-amber-100 text-amber-800'
                   }`}
                 >

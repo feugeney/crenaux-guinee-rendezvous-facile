@@ -21,6 +21,8 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminStripeSettings from "./pages/AdminStripeSettings";
 import AdminNotifications from "./pages/AdminNotifications";
 import AdminBookings from "./pages/AdminBookings";
+import AdminPriorityRequests from "./pages/AdminPriorityRequests";
+import AdminPoliticalLaunch from "./pages/AdminPoliticalLaunch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +52,8 @@ function App() {
             <Route path="/admin/stripe" element={<AdminStripeSettings />} />
             <Route path="/admin/notifications" element={<AdminNotifications />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
+            <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

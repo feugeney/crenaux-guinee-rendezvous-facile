@@ -13,7 +13,6 @@ import {
   Users,
   LogOut,
   Crown,
-  CheckCircle,
   AlertTriangle
 } from 'lucide-react';
 
@@ -54,11 +53,6 @@ export const AdminSidebar = () => {
       icon: <Crown className="h-5 w-5 text-amber-500" />,
       path: '/admin/political-launch',
       badge: 'VIP'
-    },
-    {
-      title: 'Réservations',
-      icon: <CheckCircle className="h-5 w-5" />,
-      path: '/admin/bookings'
     },
     {
       title: 'Notifications',

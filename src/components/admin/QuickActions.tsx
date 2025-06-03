@@ -11,8 +11,7 @@ import {
   Bell,
   Crown,
   Settings,
-  AlertTriangle,
-  CheckCircle
+  AlertTriangle
 } from 'lucide-react';
 
 const QuickActions = () => {
@@ -46,13 +45,6 @@ const QuickActions = () => {
       icon: <Crown className="h-5 w-5" />,
       action: () => navigate('/admin/political-launch'),
       color: 'bg-purple-500 hover:bg-purple-600'
-    },
-    {
-      title: 'Réservations',
-      description: 'Gérer les RDV',
-      icon: <CheckCircle className="h-5 w-5" />,
-      action: () => navigate('/admin/bookings'),
-      color: 'bg-indigo-500 hover:bg-indigo-600'
     },
     {
       title: 'Clients',

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,9 @@ import {
   Users,
   LogOut,
   Crown,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  MessageSquare
 } from 'lucide-react';
 
 export const AdminSidebar = () => {
@@ -43,6 +44,11 @@ export const AdminSidebar = () => {
       path: '/admin/offers'
     },
     {
+      title: 'Gestion des rendez-vous',
+      icon: <CheckCircle className="h-5 w-5" />,
+      path: '/admin/bookings'
+    },
+    {
       title: 'Demandes prioritaires',
       icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
       path: '/admin/priority-requests',
@@ -53,6 +59,11 @@ export const AdminSidebar = () => {
       icon: <Crown className="h-5 w-5 text-amber-500" />,
       path: '/admin/political-launch',
       badge: 'VIP'
+    },
+    {
+      title: 'Gestion des témoignages',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/admin/testimonials'
     },
     {
       title: 'Notifications',

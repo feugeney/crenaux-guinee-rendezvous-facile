@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,9 @@ import {
   Bell,
   Crown,
   Settings,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  MessageSquare
 } from 'lucide-react';
 
 const QuickActions = () => {
@@ -33,6 +34,13 @@ const QuickActions = () => {
       color: 'bg-green-500 hover:bg-green-600'
     },
     {
+      title: 'Rendez-vous',
+      description: 'Gérer les RDV',
+      icon: <CheckCircle className="h-5 w-5" />,
+      action: () => navigate('/admin/bookings'),
+      color: 'bg-indigo-500 hover:bg-indigo-600'
+    },
+    {
       title: 'Demandes prioritaires',
       description: 'Validation urgente',
       icon: <AlertTriangle className="h-5 w-5" />,
@@ -45,6 +53,13 @@ const QuickActions = () => {
       icon: <Crown className="h-5 w-5" />,
       action: () => navigate('/admin/political-launch'),
       color: 'bg-purple-500 hover:bg-purple-600'
+    },
+    {
+      title: 'Témoignages',
+      description: 'Gérer les avis',
+      icon: <MessageSquare className="h-5 w-5" />,
+      action: () => navigate('/admin/testimonials'),
+      color: 'bg-teal-500 hover:bg-teal-600'
     },
     {
       title: 'Clients',

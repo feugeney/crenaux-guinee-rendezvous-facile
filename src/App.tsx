@@ -23,6 +23,7 @@ import AdminNotifications from "./pages/AdminNotifications";
 import AdminBookings from "./pages/AdminBookings";
 import AdminPriorityRequests from "./pages/AdminPriorityRequests";
 import AdminPoliticalLaunch from "./pages/AdminPoliticalLaunch";
+import AdminTestimonials from "./pages/AdminTestimonials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ function App() {
             <Route path="/admin/bookings" element={<AdminBookings />} />
             <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
             <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
+            <Route path="/admin/testimonials" element={<AdminTestimonials />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

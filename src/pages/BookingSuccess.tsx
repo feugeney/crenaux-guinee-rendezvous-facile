@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -131,10 +130,10 @@ const BookingSuccess = () => {
       
       if (!email) throw new Error("Email manquant");
 
-      console.log("Envoi d'email de confirmation via Supabase function...");
+      console.log("Envoi d'email de confirmation via Gmail...");
 
-      // Utiliser la fonction Supabase pour envoyer l'email via Mailgun
-      const { data, error } = await supabase.functions.invoke("send-mailgun-email", {
+      // Utiliser la nouvelle fonction Gmail corrigée
+      const { data, error } = await supabase.functions.invoke("send-gmail-email", {
         body: {
           to: email,
           subject: "Confirmation de votre réservation - Dom Consulting",
@@ -200,7 +199,7 @@ WhatsApp: +224 610 73 08 69
       });
 
       if (error) {
-        console.error("Erreur de la fonction Supabase:", error);
+        console.error("Erreur de la fonction Gmail:", error);
         throw new Error(`Erreur lors de l'envoi: ${error.message}`);
       }
 
@@ -208,7 +207,7 @@ WhatsApp: +224 610 73 08 69
         throw new Error(data?.error || "Échec de l'envoi de l'email");
       }
 
-      console.log("Email envoyé avec succès via Mailgun");
+      console.log("Email envoyé avec succès via Gmail");
       
       toast({
         title: "Email envoyé",

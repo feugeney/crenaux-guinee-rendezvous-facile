@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,6 +105,48 @@ const UpcomingBookings = () => {
       const emailData = {
         to: booking.email,
         subject: `Confirmation de votre rendez-vous - ${booking.topic}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #4f46e5; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background: #f9fafb; }
+              .details { background-color: #f0f4ff; border-left: 4px solid #4f46e5; padding: 15px; margin: 20px 0; }
+              .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Rendez-vous Confirmé</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${booking.customer_name || 'Client'},</p>
+                <p>Votre rendez-vous a été confirmé par notre équipe.</p>
+                
+                <div class="details">
+                  <h3>Détails de votre rendez-vous:</h3>
+                  <ul>
+                    <li><strong>Date:</strong> ${format(new Date(booking.date), 'PPP', { locale: fr })}</li>
+                    <li><strong>Heure:</strong> ${booking.start_time.substring(0, 5)} - ${booking.end_time.substring(0, 5)}</li>
+                    <li><strong>Sujet:</strong> ${booking.topic}</li>
+                  </ul>
+                  ${booking.message ? `<p><strong>Votre message:</strong> ${booking.message}</p>` : ''}
+                </div>
+                
+                <p>Nous avons hâte de vous rencontrer !</p>
+              </div>
+              <div class="footer">
+                <p>L'équipe Dom Consulting</p>
+                <p>WhatsApp: +224 610 73 08 69</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
         text: `
 Bonjour ${booking.customer_name || 'Client'},
 
@@ -115,29 +156,37 @@ Votre rendez-vous a été confirmé :
 🕐 Heure : ${booking.start_time.substring(0, 5)} - ${booking.end_time.substring(0, 5)}
 📝 Sujet : ${booking.topic}
 
-${booking.message ? `Message : ${booking.message}` : ''}
+${booking.message ? `Votre message : ${booking.message}` : ''}
 
-Nous avons hâte de vous rencontrer !
+Merci de votre confiance. Nous avons hâte de vous rencontrer !
 
 Cordialement,
 L'équipe Dom Consulting
+
+---
+En cas de besoin, n'hésitez pas à nous contacter.
+WhatsApp: +224 610 73 08 69
         `
       };
 
-      const { error } = await supabase.functions.invoke('send-gmail-smtp', {
+      const { data, error } = await supabase.functions.invoke('send-gmail-email', {
         body: emailData
       });
 
-      if (error) {
-        console.error("Erreur envoi email:", error);
-        // Essayer avec l'autre fonction
-        await supabase.functions.invoke('send-gmail-nodemailer', {
-          body: emailData
-        });
+      if (error || !data?.success) {
+        console.error("Erreur envoi email:", error || data?.error);
+        throw new Error("Impossible d'envoyer l'email de confirmation");
       }
+
+      console.log("Email de confirmation envoyé avec succès");
 
     } catch (error) {
       console.error("Erreur lors de l'envoi de l'email:", error);
+      toast({
+        title: "Attention",
+        description: "Réservation mise à jour mais l'email n'a pas pu être envoyé",
+        variant: "destructive",
+      });
     }
   };
 

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface TimeSlotFormProps {
   timeSlot?: TimeSlot;
@@ -38,9 +39,14 @@ const TimeSlotForm = ({
       startTime: "09:00", 
       endTime: "10:00", 
       available: true,
-      is_recurring: isPermanent
+      is_recurring: isPermanent,
+      specific_date: null
     }
   });
+
+  const [creationType, setCreationType] = React.useState<'recurring' | 'specific'>(
+    formData?.is_recurring !== false ? 'recurring' : 'specific'
+  );
 
   const daysOfWeek = [
     { value: 1, label: 'Lundi' },
@@ -52,23 +58,71 @@ const TimeSlotForm = ({
     { value: 0, label: 'Dimanche' },
   ];
 
+  React.useEffect(() => {
+    setValue('is_recurring', creationType === 'recurring');
+    if (creationType === 'recurring') {
+      setValue('specific_date', null);
+    }
+  }, [creationType, setValue]);
+
+  const handleFormSubmit = (data: TimeSlot) => {
+    const submitData = {
+      ...data,
+      is_recurring: creationType === 'recurring',
+      specific_date: creationType === 'specific' ? data.specific_date : null
+    };
+    onSubmit(submitData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="day_of_week">Jour de la semaine</Label>
-        <select
-          id="day_of_week"
-          className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-primary focus:border-primary"
-          {...register("day_of_week", { valueAsNumber: true, required: "Le jour de la semaine est obligatoire" })}
+        <Label>Type de créneau</Label>
+        <Select 
+          value={creationType} 
+          onValueChange={(value: 'recurring' | 'specific') => setCreationType(value)}
         >
-          {daysOfWeek.map(day => (
-            <option key={day.value} value={day.value}>{day.label}</option>
-          ))}
-        </select>
-        {formState.errors.day_of_week && (
-          <p className="text-red-500 text-sm">{formState.errors.day_of_week.message}</p>
-        )}
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recurring">Créneau récurrent (chaque semaine)</SelectItem>
+            <SelectItem value="specific">Créneau spécifique (date unique)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {creationType === 'recurring' ? (
+        <div className="space-y-2">
+          <Label htmlFor="day_of_week">Jour de la semaine</Label>
+          <select
+            id="day_of_week"
+            className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-primary focus:border-primary"
+            {...register("day_of_week", { valueAsNumber: true, required: "Le jour de la semaine est obligatoire" })}
+          >
+            {daysOfWeek.map(day => (
+              <option key={day.value} value={day.value}>{day.label}</option>
+            ))}
+          </select>
+          {formState.errors.day_of_week && (
+            <p className="text-red-500 text-sm">{formState.errors.day_of_week.message}</p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor="specific_date">Date spécifique</Label>
+          <Input
+            id="specific_date"
+            type="date"
+            {...register("specific_date", { 
+              required: creationType === 'specific' ? "La date est obligatoire" : false 
+            })}
+          />
+          {formState.errors.specific_date && (
+            <p className="text-red-500 text-sm">{formState.errors.specific_date.message}</p>
+          )}
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -109,33 +163,6 @@ const TimeSlotForm = ({
           Disponible
         </label>
       </div>
-      
-      {isPermanent && (
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="is_recurring"
-            checked={watch("is_recurring")}
-            onCheckedChange={(checked) => setValue("is_recurring", Boolean(checked))}
-          />
-          <label
-            htmlFor="is_recurring"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Récurrent
-          </label>
-        </div>
-      )}
-      
-      {!isPermanent && (
-        <div className="space-y-2">
-          <Label htmlFor="specific_date">Date spécifique</Label>
-          <Input
-            id="specific_date"
-            type="date"
-            {...register("specific_date")}
-          />
-        </div>
-      )}
       
       <div className="flex justify-end gap-2">
         {onCancel && (

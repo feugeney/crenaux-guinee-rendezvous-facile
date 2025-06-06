@@ -1,9 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, CalendarPlus, Clock } from 'lucide-react';
+import { Calendar, CalendarPlus, Clock, Grid } from 'lucide-react';
 import TimeSlotList from '@/components/admin/TimeSlotList';
 import TimeSlotForm from '@/components/admin/TimeSlotForm';
+import TimeSlotCalendar from '@/components/admin/TimeSlotCalendar';
+import MultipleTimeSlotsForm from '@/components/admin/MultipleTimeSlotsForm';
 import BulkTimeSlotCreator from '@/components/admin/BulkTimeSlotCreator';
 import { supabase } from '@/lib/supabase';
 import { TimeSlot } from '@/types';
@@ -12,7 +14,7 @@ import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 const AdminTimeSlots = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<string>('list');
+  const [activeTab, setActiveTab] = useState<string>('calendar');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
 
   useEffect(() => {
@@ -75,7 +77,7 @@ const AdminTimeSlots = () => {
 
   const handleTimeSlotSave = async (timeSlot: TimeSlot) => {
     try {
-      if (timeSlot.id) {
+      if (timeSlot.id && timeSlot.id !== "" && !timeSlot.id.startsWith('temp-')) {
         // Update existing time slot
         const { error } = await supabase
           .from('time_slots')
@@ -108,10 +110,35 @@ const AdminTimeSlots = () => {
 
       // Reload time slots
       await loadTimeSlots();
-      setActiveTab('list');
+      setActiveTab('calendar');
       setSelectedTimeSlot(null);
     } catch (error) {
       console.error('Error saving time slot:', error);
+    }
+  };
+
+  const handleMultipleTimeSlotsSave = async (timeSlots: TimeSlot[]) => {
+    try {
+      const insertData = timeSlots.map(slot => ({
+        day_of_week: slot.day_of_week,
+        start_time: slot.startTime,
+        end_time: slot.endTime,
+        available: slot.available,
+        is_recurring: slot.is_recurring || false,
+        specific_date: slot.specific_date || null
+      }));
+
+      const { error } = await supabase
+        .from('time_slots')
+        .insert(insertData);
+
+      if (error) throw error;
+
+      // Reload time slots
+      await loadTimeSlots();
+      setActiveTab('calendar');
+    } catch (error) {
+      console.error('Error saving multiple time slots:', error);
     }
   };
 
@@ -136,13 +163,21 @@ const AdminTimeSlots = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6">
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Grid className="h-4 w-4" />
+              Calendrier
+            </TabsTrigger>
             <TabsTrigger value="list" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Créneaux
+              Liste
             </TabsTrigger>
             <TabsTrigger value="add" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {selectedTimeSlot ? "Modifier un créneau" : "Ajouter un créneau"}
+              Ajouter un créneau
+            </TabsTrigger>
+            <TabsTrigger value="multiple" className="flex items-center gap-2">
+              <CalendarPlus className="h-4 w-4" />
+              Créneaux multiples
             </TabsTrigger>
             <TabsTrigger value="bulk" className="flex items-center gap-2">
               <CalendarPlus className="h-4 w-4" />
@@ -150,12 +185,23 @@ const AdminTimeSlots = () => {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="calendar">
+            <TimeSlotCalendar
+              timeSlots={timeSlots}
+              onEdit={handleTimeSlotSave}
+              onDelete={handleDeleteTimeSlot}
+              onCreate={handleTimeSlotSave}
+              loading={loading}
+            />
+          </TabsContent>
+
           <TabsContent value="list">
             <TimeSlotList
               timeSlots={timeSlots}
               onEdit={handleEditTimeSlot}
               onDelete={handleDeleteTimeSlot}
               loading={loading}
+              refresh={loadTimeSlots}
             />
           </TabsContent>
 
@@ -164,9 +210,16 @@ const AdminTimeSlots = () => {
               initialData={selectedTimeSlot}
               onSubmit={handleTimeSlotSave}
               onCancel={() => {
-                setActiveTab('list');
+                setActiveTab('calendar');
                 setSelectedTimeSlot(null);
               }}
+            />
+          </TabsContent>
+
+          <TabsContent value="multiple">
+            <MultipleTimeSlotsForm
+              onSubmit={handleMultipleTimeSlotsSave}
+              onCancel={() => setActiveTab('calendar')}
             />
           </TabsContent>
 

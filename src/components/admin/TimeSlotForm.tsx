@@ -48,20 +48,10 @@ const TimeSlotForm = ({
     formData?.is_recurring !== false ? 'recurring' : 'specific'
   );
 
-  const daysOfWeek = [
-    { value: 1, label: 'Lundi' },
-    { value: 2, label: 'Mardi' },
-    { value: 3, label: 'Mercredi' },
-    { value: 4, label: 'Jeudi' },
-    { value: 5, label: 'Vendredi' },
-    { value: 6, label: 'Samedi' },
-    { value: 0, label: 'Dimanche' },
-  ];
-
   React.useEffect(() => {
     setValue('is_recurring', creationType === 'recurring');
-    if (creationType === 'recurring') {
-      setValue('specific_date', null);
+    if (creationType === 'specific') {
+      setValue('day_of_week', 0);
     }
   }, [creationType, setValue]);
 
@@ -69,7 +59,10 @@ const TimeSlotForm = ({
     const submitData = {
       ...data,
       is_recurring: creationType === 'recurring',
-      specific_date: creationType === 'specific' ? data.specific_date : null
+      specific_date: data.specific_date || null,
+      day_of_week: creationType === 'recurring' && data.specific_date 
+        ? new Date(data.specific_date).getDay() 
+        : data.day_of_week
     };
     onSubmit(submitData);
   };
@@ -86,43 +79,30 @@ const TimeSlotForm = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="recurring">Créneau récurrent (chaque semaine)</SelectItem>
+            <SelectItem value="recurring">Créneau récurrent (se répète chaque semaine)</SelectItem>
             <SelectItem value="specific">Créneau spécifique (date unique)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {creationType === 'recurring' ? (
-        <div className="space-y-2">
-          <Label htmlFor="day_of_week">Jour de la semaine</Label>
-          <select
-            id="day_of_week"
-            className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-primary focus:border-primary"
-            {...register("day_of_week", { valueAsNumber: true, required: "Le jour de la semaine est obligatoire" })}
-          >
-            {daysOfWeek.map(day => (
-              <option key={day.value} value={day.value}>{day.label}</option>
-            ))}
-          </select>
-          {formState.errors.day_of_week && (
-            <p className="text-red-500 text-sm">{formState.errors.day_of_week.message}</p>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor="specific_date">Date spécifique</Label>
-          <Input
-            id="specific_date"
-            type="date"
-            {...register("specific_date", { 
-              required: creationType === 'specific' ? "La date est obligatoire" : false 
-            })}
-          />
-          {formState.errors.specific_date && (
-            <p className="text-red-500 text-sm">{formState.errors.specific_date.message}</p>
-          )}
-        </div>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="date_selection">Date</Label>
+        <Input
+          id="date_selection"
+          type="date"
+          {...register("specific_date", { 
+            required: "La date est obligatoire" 
+          })}
+        />
+        {formState.errors.specific_date && (
+          <p className="text-red-500 text-sm">{formState.errors.specific_date.message}</p>
+        )}
+        {creationType === 'recurring' && (
+          <p className="text-sm text-gray-500">
+            Ce créneau se répétera chaque semaine à partir de cette date
+          </p>
+        )}
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">

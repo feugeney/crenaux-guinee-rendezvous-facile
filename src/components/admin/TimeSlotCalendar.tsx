@@ -30,6 +30,7 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedStartTime, setSelectedStartTime] = useState<string>('');
   const [selectedEndTime, setSelectedEndTime] = useState<string>('');
@@ -111,9 +112,14 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
   const handleDeleteConfirm = async () => {
     if (deleteId) {
-      await onDelete(deleteId);
-      setDeleteId(null);
-      setSelectedTimeSlot(null);
+      setIsDeleting(true);
+      try {
+        await onDelete(deleteId);
+        setDeleteId(null);
+        setSelectedTimeSlot(null);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -230,6 +236,7 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
         title="Supprimer le créneau"
         description="Êtes-vous sûr de vouloir supprimer ce créneau ? Cette action est irréversible."
       />

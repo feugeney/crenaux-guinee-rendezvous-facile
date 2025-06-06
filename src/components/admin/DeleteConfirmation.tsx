@@ -17,7 +17,7 @@ export interface DeleteConfirmationProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void>;
-  isDeleting: boolean;
+  isDeleting?: boolean;
   title: string;
   description: string;
 }
@@ -26,7 +26,7 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  isDeleting,
+  isDeleting = false,
   title,
   description
 }) => {

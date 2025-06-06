@@ -1,15 +1,10 @@
 
-import React, { useState, useRef } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import React, { useState } from 'react';
 import { TimeSlot } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import TimeSlotForm from './TimeSlotForm';
 import DeleteConfirmation from './DeleteConfirmation';
-import './fullcalendar.css';
 
 interface TimeSlotCalendarProps {
   timeSlots: TimeSlot[];
@@ -31,76 +26,21 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedStartTime, setSelectedStartTime] = useState<string>('');
-  const [selectedEndTime, setSelectedEndTime] = useState<string>('');
-  const calendarRef = useRef<FullCalendar>(null);
-
-  // Convert time slots to FullCalendar events
-  const events = timeSlots.map(slot => {
-    let eventDate: string;
-    
-    if (slot.is_recurring && slot.specific_date) {
-      // For recurring slots, use the specific_date as base
-      eventDate = slot.specific_date;
-    } else if (slot.specific_date) {
-      // For specific date slots
-      eventDate = slot.specific_date;
-    } else {
-      // Fallback to today for display
-      eventDate = new Date().toISOString().split('T')[0];
-    }
-
-    return {
-      id: slot.id,
-      title: `${slot.startTime} - ${slot.endTime}`,
-      start: `${eventDate}T${slot.startTime}`,
-      end: `${eventDate}T${slot.endTime}`,
-      backgroundColor: slot.available ? '#10b981' : '#ef4444',
-      borderColor: slot.available ? '#059669' : '#dc2626',
-      textColor: '#ffffff',
-      extendedProps: {
-        timeSlot: slot,
-        isRecurring: slot.is_recurring
-      }
-    };
-  });
-
-  const handleDateSelect = (selectInfo: any) => {
-    const selectedDate = selectInfo.startStr.split('T')[0];
-    const startTime = selectInfo.start.toTimeString().slice(0, 5);
-    const endTime = selectInfo.end.toTimeString().slice(0, 5);
-    
-    setSelectedDate(selectedDate);
-    setSelectedStartTime(startTime);
-    setSelectedEndTime(endTime);
-    setIsCreateDialogOpen(true);
-  };
-
-  const handleEventClick = (clickInfo: any) => {
-    const timeSlot = clickInfo.event.extendedProps.timeSlot;
-    setSelectedTimeSlot(timeSlot);
-    setIsEditDialogOpen(true);
-  };
 
   const handleCreateSubmit = async (timeSlot: TimeSlot) => {
-    const newTimeSlot = {
-      ...timeSlot,
-      specific_date: selectedDate || timeSlot.specific_date,
-      startTime: selectedStartTime || timeSlot.startTime,
-      endTime: selectedEndTime || timeSlot.endTime
-    };
-    await onCreate(newTimeSlot);
+    await onCreate(timeSlot);
     setIsCreateDialogOpen(false);
-    setSelectedDate('');
-    setSelectedStartTime('');
-    setSelectedEndTime('');
   };
 
   const handleEditSubmit = async (timeSlot: TimeSlot) => {
     await onEdit(timeSlot);
     setIsEditDialogOpen(false);
     setSelectedTimeSlot(null);
+  };
+
+  const handleEditClick = (timeSlot: TimeSlot) => {
+    setSelectedTimeSlot(timeSlot);
+    setIsEditDialogOpen(true);
   };
 
   const handleDelete = () => {
@@ -140,38 +80,40 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </Button>
       </div>
 
+      {/* Temporary grid view until FullCalendar is properly installed */}
       <div className="bg-white rounded-lg border p-4">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-          }}
-          selectable={true}
-          selectMirror={true}
-          dayMaxEvents={true}
-          weekends={true}
-          events={events}
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          height="600px"
-          locale="fr"
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          allDaySlot={false}
-          businessHours={{
-            daysOfWeek: [1, 2, 3, 4, 5],
-            startTime: '09:00',
-            endTime: '18:00'
-          }}
-          nowIndicator={true}
-          editable={false}
-          eventResizableFromStart={false}
-          eventDurationEditable={false}
-        />
+        <div className="text-center text-gray-500 py-8">
+          <p className="mb-4">Vue calendrier temporairement indisponible</p>
+          <p className="text-sm">Installation des dépendances FullCalendar en cours...</p>
+        </div>
+        
+        {/* Simple list view as fallback */}
+        <div className="mt-6 space-y-2">
+          {timeSlots.map((slot) => (
+            <div
+              key={slot.id}
+              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+            >
+              <div>
+                <span className="font-medium">
+                  {slot.specific_date} - {slot.startTime} à {slot.endTime}
+                </span>
+                <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                  slot.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {slot.available ? 'Disponible' : 'Indisponible'}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleEditClick(slot)}
+              >
+                Modifier
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Create Dialog */}
@@ -183,20 +125,15 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <TimeSlotForm
             initialData={{
               id: "",
-              day_of_week: selectedDate ? new Date(selectedDate).getDay() : 1,
-              startTime: selectedStartTime || "09:00",
-              endTime: selectedEndTime || "10:00",
+              day_of_week: 1,
+              startTime: "09:00",
+              endTime: "10:00",
               available: true,
               is_recurring: false,
-              specific_date: selectedDate || new Date().toISOString().split('T')[0]
+              specific_date: new Date().toISOString().split('T')[0]
             }}
             onSubmit={handleCreateSubmit}
-            onCancel={() => {
-              setIsCreateDialogOpen(false);
-              setSelectedDate('');
-              setSelectedStartTime('');
-              setSelectedEndTime('');
-            }}
+            onCancel={() => setIsCreateDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>

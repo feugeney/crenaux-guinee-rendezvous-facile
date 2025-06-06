@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, CalendarPlus, Clock, Grid } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import TimeSlotList from '@/components/admin/TimeSlotList';
 import TimeSlotForm from '@/components/admin/TimeSlotForm';
 import TimeSlotCalendar from '@/components/admin/TimeSlotCalendar';
@@ -16,6 +17,7 @@ const AdminTimeSlots = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('calendar');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadTimeSlots();
@@ -48,6 +50,11 @@ const AdminTimeSlots = () => {
       setTimeSlots(formattedData);
     } catch (error) {
       console.error('Error loading time slots:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les créneaux horaires",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -55,7 +62,7 @@ const AdminTimeSlots = () => {
 
   const handleEditTimeSlot = (timeSlot: TimeSlot) => {
     setSelectedTimeSlot(timeSlot);
-    setActiveTab('edit');
+    setActiveTab('add');
   };
 
   const handleDeleteTimeSlot = async (id: string) => {
@@ -70,8 +77,17 @@ const AdminTimeSlots = () => {
       }
 
       setTimeSlots(timeSlots.filter(slot => slot.id !== id));
+      toast({
+        title: "Succès",
+        description: "Créneau supprimé avec succès"
+      });
     } catch (error) {
       console.error('Error deleting time slot:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le créneau",
+        variant: "destructive"
+      });
     }
   };
 
@@ -92,6 +108,11 @@ const AdminTimeSlots = () => {
           .eq('id', timeSlot.id);
 
         if (error) throw error;
+        
+        toast({
+          title: "Succès",
+          description: "Créneau modifié avec succès"
+        });
       } else {
         // Create new time slot
         const { error } = await supabase
@@ -106,20 +127,87 @@ const AdminTimeSlots = () => {
           });
 
         if (error) throw error;
+        
+        toast({
+          title: "Succès",
+          description: "Créneau créé avec succès"
+        });
       }
 
       // Reload time slots
       await loadTimeSlots();
       setActiveTab('calendar');
       setSelectedTimeSlot(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving time slot:', error);
+      
+      let errorMessage = "Erreur lors de la sauvegarde du créneau";
+      if (error.code === '23505') {
+        errorMessage = "Ce créneau existe déjà pour cette date et heure";
+      }
+      
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
+  };
+
+  const checkExistingTimeSlots = async (timeSlots: TimeSlot[]) => {
+    const existingSlots = [];
+    const newSlots = [];
+    
+    for (const slot of timeSlots) {
+      try {
+        const { data, error } = await supabase
+          .from('time_slots')
+          .select('id')
+          .eq('day_of_week', slot.day_of_week)
+          .eq('start_time', slot.startTime)
+          .eq('end_time', slot.endTime)
+          .eq('specific_date', slot.specific_date);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          existingSlots.push(slot);
+        } else {
+          newSlots.push(slot);
+        }
+      } catch (error) {
+        console.error('Error checking existing slot:', error);
+        newSlots.push(slot); // En cas d'erreur, on essaie quand même d'insérer
+      }
+    }
+    
+    return { existingSlots, newSlots };
   };
 
   const handleMultipleTimeSlotsSave = async (timeSlots: TimeSlot[]) => {
     try {
-      const insertData = timeSlots.map(slot => ({
+      console.log('Attempting to save multiple time slots:', timeSlots);
+      
+      // Vérifier les créneaux existants
+      const { existingSlots, newSlots } = await checkExistingTimeSlots(timeSlots);
+      
+      if (existingSlots.length > 0) {
+        toast({
+          title: "Attention",
+          description: `${existingSlots.length} créneau(x) existe(nt) déjà et ne sera/seront pas créé(s)`,
+          variant: "destructive"
+        });
+      }
+      
+      if (newSlots.length === 0) {
+        toast({
+          title: "Information",
+          description: "Aucun nouveau créneau à créer",
+        });
+        return;
+      }
+      
+      const insertData = newSlots.map(slot => ({
         day_of_week: slot.day_of_week,
         start_time: slot.startTime,
         end_time: slot.endTime,
@@ -128,17 +216,35 @@ const AdminTimeSlots = () => {
         specific_date: slot.specific_date || null
       }));
 
+      console.log('Inserting data:', insertData);
+
       const { error } = await supabase
         .from('time_slots')
         .insert(insertData);
 
       if (error) throw error;
 
+      toast({
+        title: "Succès",
+        description: `${newSlots.length} créneaux créés avec succès`
+      });
+
       // Reload time slots
       await loadTimeSlots();
       setActiveTab('calendar');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving multiple time slots:', error);
+      
+      let errorMessage = "Erreur lors de la création des créneaux";
+      if (error.code === '23505') {
+        errorMessage = "Un ou plusieurs créneaux existent déjà";
+      }
+      
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
   };
 

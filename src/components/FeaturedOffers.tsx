@@ -75,9 +75,13 @@ const FeaturedOffers = () => {
             <Card key={offer.id} className="hover:shadow-lg transition-all duration-300 border-gold-100 overflow-hidden">
               <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={offer.image_url || "/lovable-uploads/f653ae10-5515-4866-88c7-0173d547d222.png"} 
+                  src={offer.image_url && offer.image_url.trim() !== '' ? offer.image_url : "/lovable-uploads/f653ae10-5515-4866-88c7-0173d547d222.png"} 
                   alt={offer.title}
                   className="w-full h-full object-cover object-center transition-transform hover:scale-105 duration-500"
+                  onError={(e) => {
+                    // En cas d'erreur, utiliser l'image par défaut
+                    (e.target as HTMLImageElement).src = "/lovable-uploads/f653ae10-5515-4866-88c7-0173d547d222.png";
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                   <div className="p-4">

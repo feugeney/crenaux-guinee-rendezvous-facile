@@ -44,20 +44,32 @@ const ImageUpload = ({ value, onChange, label = "Image" }: ImageUploadProps) => 
     setIsUploading(true);
 
     try {
-      // Créer une URL temporaire pour la preview
+      // Créer une URL blob pour afficher l'image immédiatement
       const fileUrl = URL.createObjectURL(file);
       setPreview(fileUrl);
       
-      // Pour le moment, on utilise une URL placeholder
-      // Dans un vrai projet, vous uploaderiez vers Supabase Storage ou un autre service
-      const placeholderUrl = `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=300&fit=crop`;
+      // Convertir le fichier en base64 pour le stockage
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        onChange(base64String);
+        
+        toast({
+          title: "Image uploadée",
+          description: "L'image a été uploadée avec succès",
+        });
+      };
       
-      onChange(placeholderUrl);
+      reader.onerror = () => {
+        toast({
+          title: "Erreur",
+          description: "Impossible de lire l'image",
+          variant: "destructive",
+        });
+      };
       
-      toast({
-        title: "Image uploadée",
-        description: "L'image a été uploadée avec succès",
-      });
+      reader.readAsDataURL(file);
+      
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
       toast({
@@ -71,8 +83,17 @@ const ImageUpload = ({ value, onChange, label = "Image" }: ImageUploadProps) => 
   };
 
   const removeImage = () => {
+    // Nettoyer l'URL blob si c'en est une
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
     setPreview('');
     onChange('');
+  };
+
+  const handleUrlChange = (url: string) => {
+    setPreview(url);
+    onChange(url);
   };
 
   return (
@@ -85,6 +106,10 @@ const ImageUpload = ({ value, onChange, label = "Image" }: ImageUploadProps) => 
             src={preview} 
             alt="Preview" 
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
+            onError={(e) => {
+              // En cas d'erreur de chargement, afficher l'image par défaut
+              (e.target as HTMLImageElement).src = "/lovable-uploads/f653ae10-5515-4866-88c7-0173d547d222.png";
+            }}
           />
           <Button
             type="button"
@@ -131,10 +156,7 @@ const ImageUpload = ({ value, onChange, label = "Image" }: ImageUploadProps) => 
             type="url"
             placeholder="Ou saisissez une URL d'image"
             value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-              setPreview(e.target.value);
-            }}
+            onChange={(e) => handleUrlChange(e.target.value)}
           />
         </div>
       </div>

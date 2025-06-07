@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,7 +86,7 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
     setBookings(data as PriorityBooking[]);
   };
 
-  const sendPaymentLink = async (bookingId: string) => {
+  const confirmBooking = async (bookingId: string) => {
     try {
       setIsSubmitting(true);
       
@@ -113,11 +114,12 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
         throw new Error("Impossible de créer le lien de paiement");
       }
 
-      // Mettre à jour la réservation avec le lien de paiement
+      // Mettre à jour la réservation avec le lien de paiement et confirmation
       const { error: updateError } = await supabase
         .from('bookings')
         .update({ 
-          payment_link: stripeData.url 
+          payment_link: stripeData.url,
+          payment_status: 'confirmed' 
         })
         .eq('id', bookingId);
       
@@ -215,62 +217,31 @@ L'équipe Dom Consulting
       if (emailError) {
         console.error("Erreur envoi email:", emailError);
         toast({
-          title: "Lien créé",
-          description: "Le lien de paiement a été créé, mais l'email n'a pas pu être envoyé. Vous pouvez copier le lien manuellement.",
+          title: "Réservation confirmée",
+          description: "Le rendez-vous a été confirmé et le lien de paiement créé, mais l'email n'a pas pu être envoyé automatiquement.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Lien de paiement envoyé",
-          description: "Le lien de paiement a été créé et envoyé au client par email",
+          title: "Rendez-vous confirmé",
+          description: "Le rendez-vous a été confirmé et le lien de paiement envoyé au client par email",
         });
       }
-      
-      await refreshBookings();
-      
-    } catch (err: any) {
-      console.error("Error creating payment link:", err);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: err.message || "Impossible de créer le lien de paiement",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
-  const confirmBooking = async (bookingId: string) => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ payment_status: 'confirmed' })
-        .eq('id', bookingId);
-      
-      if (error) throw error;
-      
-      const bookingToConfirm = bookings.find(b => b.id === bookingId);
-      
-      if (bookingToConfirm) {
-        const { error: notifError } = await supabase
-          .from('notifications')
-          .insert({
-            type: 'booking_confirmation',
-            recipient_email: bookingToConfirm.email || 'client@example.com',
-            sender_email: 'admin@domconsulting.com',
-            subject: 'Confirmation de réservation',
-            content: `Votre réservation pour ${bookingToConfirm.topic} le ${format(new Date(bookingToConfirm.date), 'PPP', { locale: fr })} a été confirmée.`,
-            metadata: { booking_id: bookingId },
-            sent: false
-          });
-          
-        if (notifError) throw notifError;
-      }
-      
-      toast({
-        title: "Réservation confirmée",
-        description: "La réservation a été confirmée avec succès",
-      });
+      // Créer une notification
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          type: 'booking_confirmation',
+          recipient_email: booking.email || 'client@example.com',
+          sender_email: 'admin@domconsulting.com',
+          subject: 'Confirmation de réservation',
+          content: `Votre réservation pour ${booking.topic} le ${format(new Date(booking.date), 'PPP', { locale: fr })} a été confirmée et le lien de paiement envoyé.`,
+          metadata: { booking_id: bookingId, payment_link: stripeData.url },
+          sent: false
+        });
+        
+      if (notifError) console.error("Erreur notification:", notifError);
       
       await refreshBookings();
       
@@ -279,8 +250,10 @@ L'équipe Dom Consulting
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de confirmer la réservation",
+        description: err.message || "Impossible de confirmer la réservation",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -507,22 +480,13 @@ L'équipe Dom Consulting
               Nouvelle date
             </Button>
             <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => sendPaymentLink(booking.id)}
-              disabled={booking.payment_status === 'completed' || booking.payment_status === 'confirmed' || booking.payment_status === 'rejected' || isSubmitting}
-            >
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Créer lien de paiement
-            </Button>
-            <Button 
               size="sm" 
               variant="default"
               onClick={() => confirmBooking(booking.id)}
-              disabled={booking.payment_status === 'completed' || booking.payment_status === 'confirmed' || booking.payment_status === 'rejected'}
+              disabled={booking.payment_status === 'completed' || booking.payment_status === 'confirmed' || booking.payment_status === 'rejected' || isSubmitting}
             >
-              <CheckCircle className="h-4 w-4 mr-1" />
-              Confirmer RDV
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+              Confirmer & Envoyer paiement
             </Button>
           </CardFooter>
         </Card>

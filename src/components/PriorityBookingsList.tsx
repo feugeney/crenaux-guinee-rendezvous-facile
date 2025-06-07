@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,8 +53,9 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
         setIsLoading(true);
         
         const { data, error } = await supabase
-          .from('priority_bookings')
+          .from('bookings')
           .select('*')
+          .eq('is_priority', true)
           .order('created_at', { ascending: false })
           .limit(limit);
         
@@ -75,8 +75,9 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
 
   const refreshBookings = async () => {
     const { data, error } = await supabase
-      .from('priority_bookings')
+      .from('bookings')
       .select('*')
+      .eq('is_priority', true)
       .order('created_at', { ascending: false })
       .limit(limit);
     
@@ -86,21 +87,144 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
 
   const sendPaymentLink = async (bookingId: string) => {
     try {
-      const paymentLink = `https://app.domconsulting.com/payment/${bookingId}`;
+      setIsSubmitting(true);
       
-      const { error } = await supabase
+      const booking = bookings.find(b => b.id === bookingId);
+      if (!booking) {
+        throw new Error("Réservation non trouvée");
+      }
+
+      // Créer la session de paiement Stripe
+      const { data: stripeData, error: stripeError } = await supabase.functions.invoke("stripe-checkout", {
+        body: {
+          bookingData: {
+            fullName: booking.customer_name,
+            email: booking.email,
+            topic: booking.topic,
+            date: booking.date,
+            time: booking.start_time,
+            isPriority: true
+          },
+          productPrice: 35000 // 350 USD pour prioritaire
+        }
+      });
+
+      if (stripeError || !stripeData?.url) {
+        throw new Error("Impossible de créer le lien de paiement");
+      }
+
+      // Mettre à jour la réservation avec le lien de paiement
+      const { error: updateError } = await supabase
         .from('bookings')
         .update({ 
-          payment_link: paymentLink 
+          payment_link: stripeData.url 
         })
         .eq('id', bookingId);
       
-      if (error) throw error;
-      
-      toast({
-        title: "Lien de paiement créé",
-        description: "Le lien de paiement a été généré avec succès",
+      if (updateError) throw updateError;
+
+      // Envoyer l'email de confirmation avec le lien de paiement
+      const emailData = {
+        to: booking.email,
+        subject: `Confirmation de votre rendez-vous prioritaire - ${booking.topic}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background: #f9fafb; }
+              .details { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+              .payment-button { 
+                display: inline-block; 
+                background-color: #10b981; 
+                color: white; 
+                padding: 12px 24px; 
+                text-decoration: none; 
+                border-radius: 5px; 
+                font-weight: bold; 
+                margin: 20px 0;
+              }
+              .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🚀 Rendez-vous Prioritaire Confirmé</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${booking.customer_name || 'Client'},</p>
+                <p>Excellente nouvelle ! Votre demande de rendez-vous prioritaire a été approuvée par notre équipe.</p>
+                
+                <div class="details">
+                  <h3>📅 Détails de votre rendez-vous:</h3>
+                  <ul>
+                    <li><strong>Date:</strong> ${format(new Date(booking.date), 'PPP', { locale: fr })}</li>
+                    <li><strong>Heure:</strong> ${booking.start_time.substring(0, 5)} - ${booking.end_time.substring(0, 5)}</li>
+                    <li><strong>Sujet:</strong> ${booking.topic}</li>
+                    <li><strong>Type:</strong> Consultation prioritaire (traitement sous 48h)</li>
+                  </ul>
+                  ${booking.message ? `<p><strong>Votre message:</strong> ${booking.message}</p>` : ''}
+                </div>
+                
+                <h3>💳 Finaliser votre réservation</h3>
+                <p>Pour confirmer définitivement votre rendez-vous, veuillez procéder au paiement en cliquant sur le bouton ci-dessous :</p>
+                
+                <div style="text-align: center;">
+                  <a href="${stripeData.url}" class="payment-button">
+                    💳 Payer maintenant (350 USD)
+                  </a>
+                </div>
+                
+                <p><strong>Important :</strong> Ce lien de paiement est sécurisé et géré par Stripe. Une fois le paiement effectué, vous recevrez une confirmation finale.</p>
+                
+                <p>Nous avons hâte de vous accompagner dans votre projet !</p>
+              </div>
+              <div class="footer">
+                <p>L'équipe Dom Consulting</p>
+                <p>WhatsApp: +224 610 73 08 69</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `
+Bonjour ${booking.customer_name || 'Client'},
+
+Votre demande de rendez-vous prioritaire a été approuvée !
+
+📅 Détails :
+- Date : ${format(new Date(booking.date), 'PPP', { locale: fr })}
+- Heure : ${booking.start_time.substring(0, 5)} - ${booking.end_time.substring(0, 5)}
+- Sujet : ${booking.topic}
+
+Pour finaliser votre réservation, veuillez procéder au paiement : ${stripeData.url}
+
+Cordialement,
+L'équipe Dom Consulting
+        `
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-gmail-smtp', {
+        body: emailData
       });
+
+      if (emailError) {
+        console.error("Erreur envoi email:", emailError);
+        toast({
+          title: "Lien créé",
+          description: "Le lien de paiement a été créé, mais l'email n'a pas pu être envoyé. Vous pouvez copier le lien manuellement.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Lien de paiement envoyé",
+          description: "Le lien de paiement a été créé et envoyé au client par email",
+        });
+      }
       
       await refreshBookings();
       
@@ -109,8 +233,10 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de créer le lien de paiement",
+        description: err.message || "Impossible de créer le lien de paiement",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -171,7 +297,6 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
     try {
       setIsSubmitting(true);
 
-      // Update booking status to rejected
       const { error: updateError } = await supabase
         .from('bookings')
         .update({ payment_status: 'rejected' })
@@ -179,7 +304,6 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
 
       if (updateError) throw updateError;
 
-      // Send rejection notification
       const { error: notifError } = await supabase
         .from('notifications')
         .insert({
@@ -229,7 +353,6 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
     try {
       setIsSubmitting(true);
 
-      // Send new date proposal notification
       const { error: notifError } = await supabase
         .from('notifications')
         .insert({
@@ -350,6 +473,11 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
                 )}
               </div>
             </div>
+            {booking.payment_link && (
+              <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
+                <strong>Lien de paiement créé:</strong> <a href={booking.payment_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le lien</a>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button 
@@ -382,8 +510,9 @@ const PriorityBookingsList = ({ limit = 10, showHeader = true }: PriorityBooking
               variant="outline" 
               size="sm"
               onClick={() => sendPaymentLink(booking.id)}
-              disabled={booking.payment_status === 'completed' || booking.payment_status === 'confirmed' || booking.payment_status === 'rejected'}
+              disabled={booking.payment_status === 'completed' || booking.payment_status === 'confirmed' || booking.payment_status === 'rejected' || isSubmitting}
             >
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Créer lien de paiement
             </Button>
             <Button 

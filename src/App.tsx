@@ -21,6 +21,7 @@ import AdminNotifications from './pages/AdminNotifications';
 import AdminSettings from './pages/AdminSettings';
 import AdminStripeSettings from './pages/AdminStripeSettings';
 import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
+import AdminPoliticalLaunchSchedule from './pages/AdminPoliticalLaunchSchedule';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 

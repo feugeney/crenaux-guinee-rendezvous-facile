@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,26 +8,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Crown, Send, Phone } from 'lucide-react';
+import { Crown, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@/components/ui/date-picker';
+import { countryCodes } from '@/lib/countryCodes';
+import Header from '@/components/Header';
 
-const countryCodes = [
-  { code: '+225', country: 'Côte d\'Ivoire', flag: '🇨🇮' },
-  { code: '+33', country: 'France', flag: '🇫🇷' },
-  { code: '+1', country: 'États-Unis/Canada', flag: '🇺🇸' },
-  { code: '+44', country: 'Royaume-Uni', flag: '🇬🇧' },
-  { code: '+49', country: 'Allemagne', flag: '🇩🇪' },
-  { code: '+41', country: 'Suisse', flag: '🇨🇭' },
-  { code: '+32', country: 'Belgique', flag: '🇧🇪' },
-  { code: '+221', country: 'Sénégal', flag: '🇸🇳' },
-  { code: '+226', country: 'Burkina Faso', flag: '🇧🇫' },
-  { code: '+223', country: 'Mali', flag: '🇲🇱' },
-  { code: '+212', country: 'Maroc', flag: '🇲🇦' },
-  { code: '+213', country: 'Algérie', flag: '🇩🇿' },
-  { code: '+216', country: 'Tunisie', flag: '🇹🇳' },
+const countries = [
+  // Pays africains
+  'Afrique du Sud', 'Algérie', 'Angola', 'Bénin', 'Botswana', 'Burkina Faso', 'Burundi',
+  'Cameroun', 'Cap-Vert', 'République centrafricaine', 'Tchad', 'Comores', 'Congo',
+  'Congo (RDC)', 'Côte d\'Ivoire', 'Djibouti', 'Égypte', 'Guinée équatoriale', 'Érythrée',
+  'Eswatini', 'Éthiopie', 'Gabon', 'Gambie', 'Ghana', 'Guinée', 'Kenya', 'Lesotho',
+  'Libéria', 'Libye', 'Madagascar', 'Malawi', 'Mali', 'Maroc', 'Maurice', 'Mauritanie',
+  'Mozambique', 'Namibie', 'Niger', 'Nigeria', 'Rwanda', 'Sao Tomé-et-Principe',
+  'Sénégal', 'Seychelles', 'Sierra Leone', 'Somalie', 'Soudan', 'Soudan du Sud',
+  'Tanzanie', 'Togo', 'Tunisie', 'Ouganda', 'Zambie', 'Zimbabwe',
+  // Pays européens
+  'Allemagne', 'Autriche', 'Belgique', 'Bulgarie', 'Chypre', 'Croatie', 'Danemark',
+  'Espagne', 'Estonie', 'Finlande', 'France', 'Grèce', 'Hongrie', 'Irlande', 'Islande',
+  'Italie', 'Lettonie', 'Lituanie', 'Luxembourg', 'Malte', 'Norvège', 'Pays-Bas',
+  'Pologne', 'Portugal', 'République tchèque', 'Roumanie', 'Royaume-Uni', 'Slovaquie',
+  'Slovénie', 'Suède', 'Suisse'
 ];
 
 const PoliticalLaunchForm = () => {
@@ -38,13 +43,14 @@ const PoliticalLaunchForm = () => {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    country_code: '+225',
+    country_residence: '',
     phone: '',
     professional_profile: '',
     other_profile: '',
-    city_country: '',
     gender: '',
     age_group: '',
+    personal_situation: '',
+    other_personal_situation: '',
     social_media: '',
     discovery_channel: '',
     other_discovery_channel: '',
@@ -55,8 +61,6 @@ const PoliticalLaunchForm = () => {
     leadership_qualities: '',
     desired_transformation: '',
     coaching_experience: '',
-    personal_situation: [] as string[],
-    other_personal_situation: '',
     preferred_topic: '',
     why_collaboration: '',
     format_preference: '',
@@ -81,18 +85,29 @@ const PoliticalLaunchForm = () => {
     }));
   };
 
+  const handleCountryChange = (country: string) => {
+    setFormData(prev => ({ ...prev, country_residence: country }));
+  };
+
+  const getDialCodeForCountry = (country: string) => {
+    const countryData = countryCodes.find(c => c.name === country);
+    return countryData?.dial_code || '+225';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const fullPhone = `${formData.country_code} ${formData.phone}`;
+      const dialCode = getDialCodeForCountry(formData.country_residence);
+      const fullPhone = `${dialCode} ${formData.phone}`;
       
       const { error } = await supabase
         .from('political_launch_applications')
         .insert({
           ...formData,
           phone: fullPhone,
+          city_country: formData.country_residence,
           preferred_start_date: formData.preferred_start_date?.toISOString().split('T')[0]
         });
 
@@ -118,23 +133,8 @@ const PoliticalLaunchForm = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-      {/* Header avec navigation */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <Crown className="h-8 w-8 text-amber-600" />
-              <span className="text-xl font-bold text-gray-900">Dom Consulting</span>
-            </Link>
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-600 hover:text-amber-600 transition-colors">Accueil</Link>
-              <Link to="/booking" className="text-gray-600 hover:text-amber-600 transition-colors">Réserver</Link>
-              <Link to="/shop" className="text-gray-600 hover:text-amber-600 transition-colors">Boutique</Link>
-            </nav>
-          </div>
-        </div>
-      </div>
-
+      <Header />
+      
       <div className="py-12">
         <div className="max-w-4xl mx-auto px-6">
           {/* Header */}
@@ -195,24 +195,27 @@ const PoliticalLaunchForm = () => {
                 </div>
 
                 <div>
+                  <Label>Pays de résidence *</Label>
+                  <Select value={formData.country_residence} onValueChange={handleCountryChange}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Sélectionner votre pays" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label>Numéro de téléphone et WhatsApp *</Label>
                   <div className="flex gap-2 mt-1">
-                    <Select value={formData.country_code} onValueChange={(value) => handleInputChange('country_code', value)}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {countryCodes.map((country) => (
-                          <SelectItem key={country.code} value={country.code}>
-                            <div className="flex items-center space-x-2">
-                              <span>{country.flag}</span>
-                              <span>{country.code}</span>
-                              <span className="text-sm text-gray-500">{country.country}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="w-20 flex items-center justify-center border rounded-md bg-gray-50 text-sm">
+                      {getDialCodeForCountry(formData.country_residence)}
+                    </div>
                     <Input
                       placeholder="XX XX XX XX"
                       required
@@ -221,17 +224,6 @@ const PoliticalLaunchForm = () => {
                       className="flex-1"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="city_country">Ville et pays de résidence *</Label>
-                  <Input
-                    id="city_country"
-                    required
-                    value={formData.city_country}
-                    onChange={(e) => handleInputChange('city_country', e.target.value)}
-                    className="mt-1"
-                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -287,6 +279,34 @@ const PoliticalLaunchForm = () => {
                       id="other_profile"
                       value={formData.other_profile}
                       onChange={(e) => handleInputChange('other_profile', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <Label>Situation dans votre vie privée *</Label>
+                  <Select value={formData.personal_situation} onValueChange={(value) => handleInputChange('personal_situation', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Marié(e)">Marié(e)</SelectItem>
+                      <SelectItem value="Maman ou papa solo">Maman ou papa solo</SelectItem>
+                      <SelectItem value="En couple">En couple</SelectItem>
+                      <SelectItem value="Célibataire">Célibataire</SelectItem>
+                      <SelectItem value="Autre">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.personal_situation === 'Autre' && (
+                  <div>
+                    <Label htmlFor="other_personal_situation">Autre situation personnelle</Label>
+                    <Input
+                      id="other_personal_situation"
+                      value={formData.other_personal_situation}
+                      onChange={(e) => handleInputChange('other_personal_situation', e.target.value)}
                       className="mt-1"
                     />
                   </div>
@@ -484,41 +504,6 @@ const PoliticalLaunchForm = () => {
                     onChange={(e) => handleInputChange('why_collaboration', e.target.value)}
                   />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Situation personnelle */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Situation personnelle</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Situation dans votre vie privée *</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                    {["Marié(e)", "Maman ou papa solo", "En couple", "Célibataire", "Autre"].map(option => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`personal_${option}`}
-                          checked={formData.personal_situation.includes(option)}
-                          onCheckedChange={(checked) => handleArrayChange('personal_situation', option, !!checked)}
-                        />
-                        <Label htmlFor={`personal_${option}`} className="text-sm">{option}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {formData.personal_situation.includes('Autre') && (
-                  <div>
-                    <Label htmlFor="other_personal_situation">Autre situation personnelle</Label>
-                    <Input
-                      id="other_personal_situation"
-                      value={formData.other_personal_situation}
-                      onChange={(e) => handleInputChange('other_personal_situation', e.target.value)}
-                    />
-                  </div>
-                )}
               </CardContent>
             </Card>
 

@@ -18,7 +18,7 @@ interface Offer {
 const getIconForTitle = (title: string) => {
   if (title.toLowerCase().includes('entretien')) return Users;
   if (title.toLowerCase().includes('affirme')) return BookOpen;
-  if (title.toLowerCase().includes('politique') || title.toLowerCase().includes('ascension')) return Flag;
+  if (title.toLowerCase().includes('politique') || title.toLowerCase().includes('ascension') || title.toLowerCase().includes('lancement')) return Flag;
   return Rocket;
 };
 
@@ -48,6 +48,15 @@ const FeaturedOffers = () => {
     fetchOffers();
   }, []);
 
+  const getOfferLink = (offer: Offer) => {
+    // Si c'est l'offre de lancement politique, rediriger vers /political-launch
+    if (offer.title.toLowerCase().includes('lancement') && offer.title.toLowerCase().includes('politique')) {
+      return '/political-launch';
+    }
+    // Sinon, rediriger vers strategic-consultation avec le paramètre offer
+    return `/strategic-consultation?offer=${encodeURIComponent(offer.title)}`;
+  };
+
   if (isLoading) {
     return (
       <div className="py-16 flex items-center justify-center">
@@ -70,6 +79,7 @@ const FeaturedOffers = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {offers.map((offer) => {
           const IconComponent = getIconForTitle(offer.title);
+          const offerLink = getOfferLink(offer);
           
           return (
             <Card key={offer.id} className="hover:shadow-lg transition-all duration-300 border-gold-100 overflow-hidden">
@@ -101,9 +111,9 @@ const FeaturedOffers = () => {
                 <div className="flex items-baseline">
                   <p className="text-lg font-bold text-gold-700">{offer.price} $ USD</p>
                 </div>
-                <Link to={`/strategic-consultation?offer=${encodeURIComponent(offer.title)}`}>
+                <Link to={offerLink}>
                   <Button className="bg-gold-600 hover:bg-gold-700">
-                    Réserver
+                    {offerLink === '/political-launch' ? 'Candidater' : 'Réserver'}
                   </Button>
                 </Link>
               </CardFooter>

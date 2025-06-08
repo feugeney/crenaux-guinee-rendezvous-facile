@@ -98,6 +98,31 @@ const AdminPoliticalLaunchSchedule = () => {
     setSessionDates(sessionDates.filter((_, i) => i !== index));
   };
 
+  const generatePaymentLink = async () => {
+    const price = getPrice(application!.payment_option);
+    const paymentData = {
+      bookingData: {
+        topic: "Programme Je me lance en politique",
+        fullName: application!.full_name,
+        email: application!.email,
+        phone: application!.phone,
+      },
+      productPrice: price * 100, // Convert to cents for Stripe
+    };
+
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+        body: paymentData
+      });
+
+      if (error) throw error;
+      return data.url;
+    } catch (error) {
+      console.error('Erreur génération lien paiement:', error);
+      return `${window.location.origin}/payment?amount=${price}&client=${application!.full_name}`;
+    }
+  };
+
   const handleSaveSchedule = async () => {
     if (!application || !startDate || sessionDates.length !== 6 || !followUpStartDate || !followUpEndDate) {
       toast({
@@ -111,12 +136,16 @@ const AdminPoliticalLaunchSchedule = () => {
     setIsSaving(true);
 
     try {
+      // Générer le lien de paiement
+      const paymentLink = await generatePaymentLink();
+
       const scheduleData = {
         program_start_date: startDate.toISOString(),
         intensive_sessions: sessionDates.map(date => date.toISOString()),
         follow_up_start: followUpStartDate.toISOString(),
         follow_up_end: followUpEndDate.toISOString(),
         admin_notes: adminNotes,
+        payment_link: paymentLink,
         created_at: new Date().toISOString()
       };
 
@@ -131,12 +160,52 @@ const AdminPoliticalLaunchSchedule = () => {
 
       if (error) throw error;
 
-      // Ici, on pourrait appeler une edge function pour envoyer l'email au client
-      // avec le planning proposé et le lien de paiement
+      // Envoyer l'email avec le planning et le lien de paiement
+      const emailData = {
+        to: application.email,
+        subject: "Votre planning personnalisé - Programme Je me lance en politique",
+        content: `
+          <h2>Bonjour ${application.full_name},</h2>
+          
+          <p>Nous avons le plaisir de vous proposer le planning suivant pour votre programme "Je me lance en politique" :</p>
+          
+          <h3>📅 Planning de votre programme</h3>
+          <p><strong>Date de début :</strong> ${startDate.toLocaleDateString('fr-FR')}</p>
+          
+          <h4>🎯 Séances intensives de coaching :</h4>
+          <ul>
+            ${sessionDates.map((date, index) => 
+              `<li>Séance ${index + 1} : ${date.toLocaleDateString('fr-FR')}</li>`
+            ).join('')}
+          </ul>
+          
+          <h4>📈 Période de suivi post-coaching :</h4>
+          <p>Du ${followUpStartDate.toLocaleDateString('fr-FR')} au ${followUpEndDate.toLocaleDateString('fr-FR')}</p>
+          
+          ${adminNotes ? `<h4>💬 Message personnel :</h4><p>${adminNotes}</p>` : ''}
+          
+          <h3>💳 Finaliser votre inscription</h3>
+          <p>Pour confirmer votre place et commencer cette aventure transformatrice, cliquez sur le lien ci-dessous :</p>
+          
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${paymentLink}" style="background-color: #D97706; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              💰 Procéder au paiement (${getPrice(application.payment_option)}$ USD)
+            </a>
+          </p>
+          
+          <p><em>Nous avons hâte de vous accompagner dans cette aventure politique !</em></p>
+          
+          <p>Cordialement,<br>
+          <strong>DOMANI DORÉ</strong><br>
+          Coach en leadership politique</p>
+        `
+      };
+
+      await supabase.functions.invoke('send-email', { body: emailData });
 
       toast({
         title: "Succès",
-        description: "Planning proposé et envoyé au client par email",
+        description: "Planning proposé et envoyé au client par email avec le lien de paiement",
       });
 
       navigate('/admin/political-launch');
@@ -346,7 +415,7 @@ const AdminPoliticalLaunchSchedule = () => {
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Proposer le Planning
+                Proposer le Planning avec Paiement
               </>
             )}
           </Button>

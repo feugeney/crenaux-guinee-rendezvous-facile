@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Index from './pages';
+import Index from './pages/Index';
 import Booking from './pages/Booking';
 import TimeSelection from './pages/TimeSelection';
 import BookingConfirmation from './pages/BookingConfirmation';
@@ -21,7 +22,6 @@ import AdminSettings from './pages/AdminSettings';
 import AdminStripeSettings from './pages/AdminStripeSettings';
 import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
 import NotFound from './pages/NotFound';
-
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 
 function App() {

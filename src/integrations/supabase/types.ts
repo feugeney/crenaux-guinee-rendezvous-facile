@@ -239,6 +239,126 @@ export type Database = {
         }
         Relationships: []
       }
+      political_launch_applications: {
+        Row: {
+          admin_response: string | null
+          age_group: string
+          city_country: string
+          coaching_experience: string
+          comfort_options: string[] | null
+          contact_preference: string
+          created_at: string
+          desired_transformation: string
+          discovery_channel: string
+          email: string
+          format_preference: string
+          full_name: string
+          gender: string
+          id: string
+          leadership_qualities: string
+          obstacles: string[] | null
+          other_discovery_channel: string | null
+          other_obstacles: string | null
+          other_personal_situation: string | null
+          other_political_situation: string | null
+          other_profile: string | null
+          payment_link: string | null
+          payment_method: string
+          payment_option: string
+          personal_situation: string[]
+          phone: string
+          political_situation: string[]
+          preferred_start_date: string | null
+          preferred_topic: string
+          professional_profile: string
+          proposed_schedule: Json | null
+          schedule_validated: boolean | null
+          social_media: string
+          start_period: string
+          status: string
+          updated_at: string
+          why_collaboration: string
+        }
+        Insert: {
+          admin_response?: string | null
+          age_group: string
+          city_country: string
+          coaching_experience: string
+          comfort_options?: string[] | null
+          contact_preference: string
+          created_at?: string
+          desired_transformation: string
+          discovery_channel: string
+          email: string
+          format_preference: string
+          full_name: string
+          gender: string
+          id?: string
+          leadership_qualities: string
+          obstacles?: string[] | null
+          other_discovery_channel?: string | null
+          other_obstacles?: string | null
+          other_personal_situation?: string | null
+          other_political_situation?: string | null
+          other_profile?: string | null
+          payment_link?: string | null
+          payment_method: string
+          payment_option: string
+          personal_situation: string[]
+          phone: string
+          political_situation: string[]
+          preferred_start_date?: string | null
+          preferred_topic: string
+          professional_profile: string
+          proposed_schedule?: Json | null
+          schedule_validated?: boolean | null
+          social_media: string
+          start_period: string
+          status?: string
+          updated_at?: string
+          why_collaboration: string
+        }
+        Update: {
+          admin_response?: string | null
+          age_group?: string
+          city_country?: string
+          coaching_experience?: string
+          comfort_options?: string[] | null
+          contact_preference?: string
+          created_at?: string
+          desired_transformation?: string
+          discovery_channel?: string
+          email?: string
+          format_preference?: string
+          full_name?: string
+          gender?: string
+          id?: string
+          leadership_qualities?: string
+          obstacles?: string[] | null
+          other_discovery_channel?: string | null
+          other_obstacles?: string | null
+          other_personal_situation?: string | null
+          other_political_situation?: string | null
+          other_profile?: string | null
+          payment_link?: string | null
+          payment_method?: string
+          payment_option?: string
+          personal_situation?: string[]
+          phone?: string
+          political_situation?: string[]
+          preferred_start_date?: string | null
+          preferred_topic?: string
+          professional_profile?: string
+          proposed_schedule?: Json | null
+          schedule_validated?: boolean | null
+          social_media?: string
+          start_period?: string
+          status?: string
+          updated_at?: string
+          why_collaboration?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           content_url: string | null

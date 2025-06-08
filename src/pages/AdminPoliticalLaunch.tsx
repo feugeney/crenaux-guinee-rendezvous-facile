@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,12 +17,12 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Eye
+  Eye,
+  CalendarPlus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 
 interface PoliticalApplication {
   id: string;
@@ -70,8 +69,6 @@ const AdminPoliticalLaunch = () => {
   const [applications, setApplications] = useState<PoliticalApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<PoliticalApplication | null>(null);
-  const [adminResponse, setAdminResponse] = useState('');
-  const [proposedSchedule, setProposedSchedule] = useState('');
 
   useEffect(() => {
     fetchApplications();
@@ -118,40 +115,25 @@ const AdminPoliticalLaunch = () => {
     }
   };
 
-  const updateApplicationStatus = async (id: string, status: string, response?: string, schedule?: string) => {
+  const updateApplicationStatus = async (id: string, status: string) => {
     try {
-      const updateData: any = { status };
-      
-      if (response) {
-        updateData.admin_response = response;
-      }
-      
-      if (schedule) {
-        updateData.proposed_schedule = { schedule };
-      }
-
       const { error } = await supabase
         .from('political_launch_applications')
-        .update(updateData)
+        .update({ status })
         .eq('id', id);
 
       if (error) throw error;
 
       setApplications(apps => 
         apps.map(app => 
-          app.id === id ? { ...app, ...updateData } : app
+          app.id === id ? { ...app, status } : app
         )
       );
       
       toast({
         title: "Succès",
-        description: `Candidature ${status === 'approved' ? 'approuvée' : status === 'rejected' ? 'rejetée' : 'mise à jour'}`,
+        description: `Candidature ${status === 'approved' ? 'approuvée' : 'rejetée'}`,
       });
-
-      if (status === 'approved') {
-        // Ici vous pourriez ajouter l'envoi d'un email de confirmation
-        console.log('Envoi email de confirmation pour:', id);
-      }
     } catch (error) {
       console.error('Erreur:', error);
       toast({
@@ -160,22 +142,6 @@ const AdminPoliticalLaunch = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleApproveWithSchedule = async (app: PoliticalApplication) => {
-    if (!proposedSchedule.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez proposer un planning",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    await updateApplicationStatus(app.id, 'schedule_proposed', adminResponse, proposedSchedule);
-    setAdminResponse('');
-    setProposedSchedule('');
-    setSelectedApp(null);
   };
 
   const sendPaymentLink = async (applicationId: string) => {
@@ -193,8 +159,6 @@ const AdminPoliticalLaunch = () => {
 
       if (error) throw error;
 
-      // Ici vous pourriez appeler une edge function pour envoyer l'email avec le lien
-      
       toast({
         title: "Succès",
         description: "Lien de paiement envoyé par email au client",
@@ -380,47 +344,14 @@ const AdminPoliticalLaunch = () => {
                           >
                             Rejeter
                           </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => setSelectedApp(app)}
-                              >
-                                Approuver
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Approuver la candidature</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="text-sm font-medium">Réponse personnalisée (optionnel)</label>
-                                  <Textarea
-                                    placeholder="Message personnalisé pour le candidat..."
-                                    value={adminResponse}
-                                    onChange={(e) => setAdminResponse(e.target.value)}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">Proposition de planning *</label>
-                                  <Textarea
-                                    placeholder="Proposez des créneaux disponibles..."
-                                    value={proposedSchedule}
-                                    onChange={(e) => setProposedSchedule(e.target.value)}
-                                    required
-                                  />
-                                </div>
-                                <Button
-                                  onClick={() => handleApproveWithSchedule(app)}
-                                  className="w-full"
-                                >
-                                  Approuver et envoyer le planning
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700"
+                            onClick={() => navigate(`/admin/political-launch-schedule/${app.id}`)}
+                          >
+                            <CalendarPlus className="h-4 w-4 mr-1" />
+                            Proposer Planning
+                          </Button>
                         </>
                       )}
                       
@@ -450,6 +381,7 @@ const AdminPoliticalLaunch = () => {
                             <DialogTitle>Détails de la candidature - {app.full_name}</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-6">
+                            
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <h4 className="font-semibold text-gray-700">Informations personnelles</h4>
@@ -560,7 +492,19 @@ const AdminPoliticalLaunch = () => {
                             {app.proposed_schedule && (
                               <div>
                                 <h4 className="font-semibold text-gray-700">Planning proposé</h4>
-                                <p className="text-sm">{app.proposed_schedule.schedule}</p>
+                                <div className="text-sm space-y-1">
+                                  <p><strong>Début du programme:</strong> {new Date(app.proposed_schedule.program_start_date).toLocaleDateString('fr-FR')}</p>
+                                  <p><strong>Séances intensives:</strong></p>
+                                  <ul className="list-disc list-inside ml-4">
+                                    {app.proposed_schedule.intensive_sessions?.map((session: string, index: number) => (
+                                      <li key={index}>Séance {index + 1}: {new Date(session).toLocaleDateString('fr-FR')}</li>
+                                    ))}
+                                  </ul>
+                                  <p><strong>Suivi post-coaching:</strong> Du {new Date(app.proposed_schedule.follow_up_start).toLocaleDateString('fr-FR')} au {new Date(app.proposed_schedule.follow_up_end).toLocaleDateString('fr-FR')}</p>
+                                  {app.proposed_schedule.admin_notes && (
+                                    <p><strong>Notes:</strong> {app.proposed_schedule.admin_notes}</p>
+                                  )}
+                                </div>
                               </div>
                             )}
 

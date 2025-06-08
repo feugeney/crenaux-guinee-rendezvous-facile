@@ -52,6 +52,7 @@ function App() {
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/stripe-settings" element={<AdminStripeSettings />} />
           <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
+          <Route path="/admin/political-launch-schedule/:id" element={<AdminPoliticalLaunchSchedule />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,130 +1,105 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Crown, Send } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { DatePicker } from '@/components/ui/date-picker';
-import { countryCodes } from '@/lib/countryCodes';
+import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
 
-const countries = [
-  // Pays africains
-  'Afrique du Sud', 'Algérie', 'Angola', 'Bénin', 'Botswana', 'Burkina Faso', 'Burundi',
-  'Cameroun', 'Cap-Vert', 'République centrafricaine', 'Tchad', 'Comores', 'Congo',
-  'Congo (RDC)', 'Côte d\'Ivoire', 'Djibouti', 'Égypte', 'Guinée équatoriale', 'Érythrée',
-  'Eswatini', 'Éthiopie', 'Gabon', 'Gambie', 'Ghana', 'Guinée', 'Kenya', 'Lesotho',
-  'Libéria', 'Libye', 'Madagascar', 'Malawi', 'Mali', 'Maroc', 'Maurice', 'Mauritanie',
-  'Mozambique', 'Namibie', 'Niger', 'Nigeria', 'Rwanda', 'Sao Tomé-et-Principe',
-  'Sénégal', 'Seychelles', 'Sierra Leone', 'Somalie', 'Soudan', 'Soudan du Sud',
-  'Tanzanie', 'Togo', 'Tunisie', 'Ouganda', 'Zambie', 'Zimbabwe',
-  // Pays européens
-  'Allemagne', 'Autriche', 'Belgique', 'Bulgarie', 'Chypre', 'Croatie', 'Danemark',
-  'Espagne', 'Estonie', 'Finlande', 'France', 'Grèce', 'Hongrie', 'Irlande', 'Islande',
-  'Italie', 'Lettonie', 'Lituanie', 'Luxembourg', 'Malte', 'Norvège', 'Pays-Bas',
-  'Pologne', 'Portugal', 'République tchèque', 'Roumanie', 'Royaume-Uni', 'Slovaquie',
-  'Slovénie', 'Suède', 'Suisse'
+interface Country {
+  code: string;
+  name: string;
+  flag: string;
+  phoneCode: string;
+}
+
+const countries: Country[] = [
+  { code: "FR", name: "France", flag: "🇫🇷", phoneCode: "33" },
+  { code: "CA", name: "Canada", flag: "🇨🇦", phoneCode: "1" },
+  { code: "BE", name: "Belgique", flag: "🇧🇪", phoneCode: "32" },
+  { code: "CH", name: "Suisse", flag: "🇨🇭", phoneCode: "41" },
+  { code: "LU", name: "Luxembourg", flag: "🇱🇺", phoneCode: "352" },
+  { code: "MC", name: "Monaco", flag: "🇲🇨", phoneCode: "377" },
+  { code: "US", name: "États-Unis", flag: "🇺🇸", phoneCode: "1" },
+  { code: "GB", name: "Royaume-Uni", flag: "🇬🇧", phoneCode: "44" },
+  { code: "DE", name: "Allemagne", flag: "🇩🇪", phoneCode: "49" },
+  { code: "ES", name: "Espagne", flag: "🇪🇸", phoneCode: "34" },
+  { code: "IT", name: "Italie", flag: "🇮🇹", phoneCode: "39" },
+  { code: "PT", name: "Portugal", flag: "🇵🇹", phoneCode: "351" },
+  { code: "DZ", name: "Algérie", flag: "🇩🇿", phoneCode: "213" },
+  { code: "MA", name: "Maroc", flag: "🇲🇦", phoneCode: "212" },
+  { code: "TN", name: "Tunisie", flag: "🇹🇳", phoneCode: "216" },
+  { code: "other", name: "Autre", flag: "🌐", phoneCode: "" }
 ];
 
+interface PoliticalLaunchFormValues {
+  full_name: string;
+  email: string;
+  country_residence: string;
+  phone: string;
+  country_code: string;
+  personal_situation: string;
+  other_personal_situation?: string;
+  motivation: string;
+  political_situation: string;
+  other_political_situation?: string;
+  political_experience?: string;
+  skills: string;
+  obstacles?: string[];
+  comfort_options?: string[];
+  additional_info?: string;
+  accept_terms: boolean;
+}
+
 const PoliticalLaunchForm = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<PoliticalLaunchFormValues>();
 
-  // Form data state
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    country_residence: '',
-    phone: '',
-    professional_profile: '',
-    other_profile: '',
-    gender: '',
-    age_group: '',
-    personal_situation: '',
-    other_personal_situation: '',
-    social_media: '',
-    discovery_channel: '',
-    other_discovery_channel: '',
-    political_situation: [] as string[],
-    other_political_situation: '',
-    obstacles: [] as string[],
-    other_obstacles: '',
-    leadership_qualities: '',
-    desired_transformation: '',
-    coaching_experience: '',
-    preferred_topic: '',
-    why_collaboration: '',
-    format_preference: '',
-    contact_preference: '',
-    start_period: '',
-    preferred_start_date: undefined as Date | undefined,
-    comfort_options: [] as string[],
-    payment_option: '',
-    payment_method: ''
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleCountryChange = (countryName: string) => {
+    const country = countries.find(c => c.name === countryName);
+    if (country) {
+      setValue("country_code", `+${country.phoneCode}`);
+    } else {
+      setValue("country_code", "+XX");
+    }
   };
 
-  const handleArrayChange = (field: string, value: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: checked 
-        ? [...prev[field as keyof typeof prev] as string[], value]
-        : (prev[field as keyof typeof prev] as string[]).filter(item => item !== value)
-    }));
-  };
-
-  const handleCountryChange = (country: string) => {
-    setFormData(prev => ({ ...prev, country_residence: country }));
-  };
-
-  const getDialCodeForCountry = (country: string) => {
-    const countryData = countryCodes.find(c => c.name === country);
-    return countryData?.dial_code || '+225';
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
-
     try {
-      const dialCode = getDialCodeForCountry(formData.country_residence);
-      const fullPhone = `${dialCode} ${formData.phone}`;
-      
+      const formData = {
+        ...data,
+        personal_situation: Array.isArray(data.personal_situation) ? data.personal_situation : [data.personal_situation],
+        political_situation: Array.isArray(data.political_situation) ? data.political_situation : [data.political_situation],
+        obstacles: data.obstacles ? (Array.isArray(data.obstacles) ? data.obstacles : [data.obstacles]) : [],
+        comfort_options: data.comfort_options ? (Array.isArray(data.comfort_options) ? data.comfort_options : [data.comfort_options]) : []
+      };
+
       const { error } = await supabase
         .from('political_launch_applications')
-        .insert({
-          ...formData,
-          phone: fullPhone,
-          city_country: formData.country_residence,
-          preferred_start_date: formData.preferred_start_date?.toISOString().split('T')[0]
-        });
+        .insert([formData]);
 
       if (error) throw error;
 
       toast({
-        title: "Candidature envoyée avec succès !",
-        description: "Nous examinerons votre candidature et vous contacterons rapidement.",
+        title: "Candidature envoyée avec succès",
+        description: "Nous reviendrons vers vous dans les plus brefs délais.",
       });
 
-      navigate('/');
-    } catch (error) {
-      console.error('Erreur:', error);
+      // Reset form or redirect
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('Erreur lors de l\'envoi:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'envoyer votre candidature. Veuillez réessayer.",
-        variant: "destructive",
+        description: "Une erreur est survenue lors de l'envoi de votre candidature.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -132,540 +107,310 @@ const PoliticalLaunchForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-coaching-50 to-coaching-100">
       <Header />
       
-      <div className="py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Crown className="h-12 w-12 text-amber-500 mr-4" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
-                Programme "Je me lance en politique"
-              </h1>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold text-amber-700 mb-4">ET SI NOUS FAISIONS CONNAISSANCE ?</h2>
-              <div className="text-left space-y-3 text-gray-700">
-                <p>Bonjour, je suis si fière de vous retrouver ici et félicitation pour votre engagement.</p>
-                <p>En effet, ce formulaire s'adresse exclusivement à celles et ceux qui souhaitent réussir leurs premiers pas en politique, bâtir sereinement une carrière politique hors du commun et qui reflète leurs valeurs.</p>
-                <p>Mon objectif à moi, est donc de comprendre votre situation actuelle pour déterminer en priorité, si je suis la bonne personne pour vous accompagner et ainsi préparer efficacement cette aventure ensemble.</p>
-                <p className="font-semibold">Il faut que je vous le dise : je n'accepte de travailler qu'avec des femmes, des hommes et donc avec des personnalités, prêtes à s'investir à 100% pour provoquer leur ascension politique par une méthode audacieuse.</p>
-                <p>Merci de remplir le formulaire à présent et à nos succès mérités !</p>
-                <div className="mt-4 text-right">
-                  <p className="font-bold text-amber-700">DOMANI DORÉ</p>
-                  <p className="text-sm">Coach en leadership politique et développement professionnel</p>
-                  <p className="text-sm">Ancienne Ministre et parlementaire</p>
-                  <p className="text-sm">Fondatrice associée du cabinet Dom Consulting</p>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-coaching-800">
+              Programme "Je me lance en politique"
+            </CardTitle>
+            <CardDescription className="text-lg text-gray-600">
+              Formulaire de candidature pour rejoindre notre programme d'accompagnement politique personnalisé
+            </CardDescription>
+          </CardHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informations personnelles */}
-            <Card className="bg-white shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl text-amber-700">Informations personnelles</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              {/* Informations personnelles */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-coaching-800 border-b pb-2">
+                  Informations personnelles
+                </h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="full_name">Prénom et nom *</Label>
+                    <Label htmlFor="full_name">Nom complet *</Label>
                     <Input
                       id="full_name"
-                      required
-                      value={formData.full_name}
-                      onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className="mt-1"
+                      {...register("full_name", { required: "Le nom complet est requis" })}
+                      placeholder="Votre nom complet"
                     />
+                    {errors.full_name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.full_name.message as string}</p>
+                    )}
                   </div>
+
                   <div>
-                    <Label htmlFor="email">Adresse e-mail *</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="mt-1"
+                      {...register("email", { 
+                        required: "L'email est requis",
+                        pattern: {
+                          value: /^\S+@\S+$/i,
+                          message: "Email invalide"
+                        }
+                      })}
+                      placeholder="votre@email.com"
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>
+                    )}
                   </div>
                 </div>
 
-                <div>
-                  <Label>Pays de résidence *</Label>
-                  <Select value={formData.country_residence} onValueChange={handleCountryChange}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionner votre pays" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Numéro de téléphone et WhatsApp *</Label>
-                  <div className="flex gap-2 mt-1">
-                    <div className="w-20 flex items-center justify-center border rounded-md bg-gray-50 text-sm">
-                      {getDialCodeForCountry(formData.country_residence)}
-                    </div>
-                    <Input
-                      placeholder="XX XX XX XX"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Sexe *</Label>
-                    <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Femme">Femme</SelectItem>
-                        <SelectItem value="Homme">Homme</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Tranche d'âge *</Label>
-                    <Select value={formData.age_group} onValueChange={(value) => handleInputChange('age_group', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Moins de 35 ans">Moins de 35 ans</SelectItem>
-                        <SelectItem value="Entre 35 ans et 45 ans">Entre 35 ans et 45 ans</SelectItem>
-                        <SelectItem value="Entre 45 ans et 55 ans">Entre 45 ans et 55 ans</SelectItem>
-                        <SelectItem value="Plus de 55 ans">Plus de 55 ans</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Profil professionnel *</Label>
-                    <Select value={formData.professional_profile} onValueChange={(value) => handleInputChange('professional_profile', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Entrepreneur(e)">Entrepreneur(e)</SelectItem>
-                        <SelectItem value="Haut cadre">Haut cadre</SelectItem>
-                        <SelectItem value="Fonctionnaire">Fonctionnaire</SelectItem>
-                        <SelectItem value="Parlementaire (Député)">Parlementaire (Député)</SelectItem>
-                        <SelectItem value="élu(e) local(e)">élu(e) local(e)</SelectItem>
-                        <SelectItem value="Retraité(e)">Retraité(e)</SelectItem>
-                        <SelectItem value="Autre">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {formData.professional_profile === 'Autre' && (
-                  <div>
-                    <Label htmlFor="other_profile">Autre profil</Label>
-                    <Input
-                      id="other_profile"
-                      value={formData.other_profile}
-                      onChange={(e) => handleInputChange('other_profile', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <Label>Situation dans votre vie privée *</Label>
-                  <Select value={formData.personal_situation} onValueChange={(value) => handleInputChange('personal_situation', value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Marié(e)">Marié(e)</SelectItem>
-                      <SelectItem value="Maman ou papa solo">Maman ou papa solo</SelectItem>
-                      <SelectItem value="En couple">En couple</SelectItem>
-                      <SelectItem value="Célibataire">Célibataire</SelectItem>
-                      <SelectItem value="Autre">Autre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.personal_situation === 'Autre' && (
-                  <div>
-                    <Label htmlFor="other_personal_situation">Autre situation personnelle</Label>
-                    <Input
-                      id="other_personal_situation"
-                      value={formData.other_personal_situation}
-                      onChange={(e) => handleInputChange('other_personal_situation', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Découverte et réseaux sociaux */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Présence digitale et découverte</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="social_media">Lien de votre site ou nom sur les réseaux sociaux *</Label>
-                  <Input
-                    id="social_media"
-                    placeholder="Facebook / TikTok / Instagram / Site web"
-                    required
-                    value={formData.social_media}
-                    onChange={(e) => handleInputChange('social_media', e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <Label>Comment avez-vous entendu parler de mes accompagnements ? *</Label>
-                  <Select value={formData.discovery_channel} onValueChange={(value) => handleInputChange('discovery_channel', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un canal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Par une connaissance">Par une connaissance</SelectItem>
-                      <SelectItem value="Sur recommandation client(e)s">Sur recommandation client(e)s</SelectItem>
-                      <SelectItem value="Facebook">Facebook</SelectItem>
-                      <SelectItem value="Instagram">Instagram</SelectItem>
-                      <SelectItem value="TikTok">TikTok</SelectItem>
-                      <SelectItem value="Twitter ou X">Twitter ou X</SelectItem>
-                      <SelectItem value="Linkedin">Linkedin</SelectItem>
-                      <SelectItem value="Treads">Treads</SelectItem>
-                      <SelectItem value="Sur votre site via une recherche google">Google</SelectItem>
-                      <SelectItem value="Autre">Autre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.discovery_channel === 'Autre' && (
-                  <div>
-                    <Label htmlFor="other_discovery_channel">Autre canal de découverte</Label>
-                    <Input
-                      id="other_discovery_channel"
-                      value={formData.other_discovery_channel}
-                      onChange={(e) => handleInputChange('other_discovery_channel', e.target.value)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Situation politique */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Situation politique actuelle</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Quelle est votre situation actuelle ? (choix multiples) *</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                    {[
-                      "Activiste social, je prépare ma future candidature",
-                      "Futur(e) candidat(e) non déclaré encore",
-                      "Je préside un Parti politique ou une dynamique politique",
-                      "Ex Candidat(e) à une élection",
-                      "Membre du Bureau d'un parti ou d'une dynamique politique",
-                      "Élu(e) en exercice pour la 1ère fois",
-                      "Haut cadre en poste ou reconversion vers l'administration publique en cours",
-                      "Militant(e) d'un Parti Politique",
-                      "Autre"
-                    ].map(option => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`political_${option}`}
-                          checked={formData.political_situation.includes(option)}
-                          onCheckedChange={(checked) => handleArrayChange('political_situation', option, !!checked)}
-                        />
-                        <Label htmlFor={`political_${option}`} className="text-sm">{option}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {formData.political_situation.includes('Autre') && (
-                  <div>
-                    <Label htmlFor="other_political_situation">Autre situation politique</Label>
-                    <Input
-                      id="other_political_situation"
-                      value={formData.other_political_situation}
-                      onChange={(e) => handleInputChange('other_political_situation', e.target.value)}
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <Label>Quels sont vos plus grands obstacles ? (choix multiples)</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                    {[
-                      "Manque de confiance en soi",
-                      "Manque de visibilité",
-                      "Manque de discipline et de plan stratégique",
-                      "Manque de réseau et de soutien",
-                      "Autre"
-                    ].map(option => (
-                      <div key={option} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`obstacle_${option}`}
-                          checked={formData.obstacles.includes(option)}
-                          onCheckedChange={(checked) => handleArrayChange('obstacles', option, !!checked)}
-                        />
-                        <Label htmlFor={`obstacle_${option}`} className="text-sm">{option}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {formData.obstacles.includes('Autre') && (
-                  <div>
-                    <Label htmlFor="other_obstacles">Autres obstacles</Label>
-                    <Input
-                      id="other_obstacles"
-                      value={formData.other_obstacles}
-                      onChange={(e) => handleInputChange('other_obstacles', e.target.value)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Leadership et objectifs */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Leadership et objectifs</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="leadership_qualities">3 qualificatifs qui vous décrivent comme leader *</Label>
-                  <Textarea
-                    id="leadership_qualities"
-                    required
-                    rows={2}
-                    value={formData.leadership_qualities}
-                    onChange={(e) => handleInputChange('leadership_qualities', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="desired_transformation">Unique transformation souhaitée au sortir de ce programme *</Label>
-                  <Textarea
-                    id="desired_transformation"
-                    required
-                    rows={3}
-                    value={formData.desired_transformation}
-                    onChange={(e) => handleInputChange('desired_transformation', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="coaching_experience">Expérience de coaching antérieure *</Label>
-                  <Textarea
-                    id="coaching_experience"
-                    required
-                    rows={3}
-                    placeholder="Avez-vous déjà fait recours à un coach politique ou autre? Si oui, qu'est-ce que vous n'avez pas aimé? Si non, merci de le préciser."
-                    value={formData.coaching_experience}
-                    onChange={(e) => handleInputChange('coaching_experience', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="preferred_topic">Thématique à aborder amplement *</Label>
-                  <Textarea
-                    id="preferred_topic"
-                    required
-                    rows={2}
-                    value={formData.preferred_topic}
-                    onChange={(e) => handleInputChange('preferred_topic', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="why_collaboration">Pourquoi souhaitez-vous franchir ce pas avec moi ? *</Label>
-                  <Textarea
-                    id="why_collaboration"
-                    required
-                    rows={3}
-                    value={formData.why_collaboration}
-                    onChange={(e) => handleInputChange('why_collaboration', e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Modalités d'accompagnement */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Modalités d'accompagnement</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Format souhaité *</Label>
-                    <Select value={formData.format_preference} onValueChange={(value) => handleInputChange('format_preference', value)}>
+                    <Label htmlFor="country_residence">Pays de résidence *</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setValue("country_residence", value);
+                        handleCountryChange(value);
+                      }}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
+                        <SelectValue placeholder="Sélectionnez votre pays" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="En Ligne via Zoom">En Ligne via Zoom</SelectItem>
-                        <SelectItem value="En Présentiel dans nos bureaux">En Présentiel dans nos bureaux</SelectItem>
+                        {countries.map((country) => (
+                          <SelectItem key={country.code} value={country.name}>
+                            {country.flag} {country.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label>Canal de contact privilégié *</Label>
-                    <Select value={formData.contact_preference} onValueChange={(value) => handleInputChange('contact_preference', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Par email">Par email</SelectItem>
-                        <SelectItem value="Via WhatsApp">Via WhatsApp</SelectItem>
-                        <SelectItem value="Via les deux">Via les deux</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="phone">Numéro de téléphone *</Label>
+                    <div className="flex">
+                      <div className="flex items-center px-3 bg-gray-100 border border-r-0 rounded-l-md">
+                        <span className="text-sm font-medium">
+                          {watch("country_code") || "+XX"}
+                        </span>
+                      </div>
+                      <Input
+                        id="phone"
+                        {...register("phone", { required: "Le numéro de téléphone est requis" })}
+                        placeholder="123456789"
+                        className="rounded-l-none"
+                      />
+                    </div>
+                    <input type="hidden" {...register("country_code")} />
                   </div>
                 </div>
 
                 <div>
-                  <Label>Période de début souhaitée *</Label>
-                  <Select value={formData.start_period} onValueChange={(value) => handleInputChange('start_period', value)}>
+                  <Label htmlFor="personal_situation">Situation personnelle *</Label>
+                  <Select onValueChange={(value) => setValue("personal_situation", value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
+                      <SelectValue placeholder="Sélectionnez votre situation" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Au courant de la semaine (minimum 48h)">Au courant de la semaine (minimum 48h)</SelectItem>
-                      <SelectItem value="Le mois prochain">Le mois prochain</SelectItem>
-                      <SelectItem value="Date de mon choix">Date de mon choix</SelectItem>
+                      <SelectItem value="student">Étudiant(e)</SelectItem>
+                      <SelectItem value="employed">Salarié(e)</SelectItem>
+                      <SelectItem value="self_employed">Indépendant(e)</SelectItem>
+                      <SelectItem value="unemployed">Sans emploi</SelectItem>
+                      <SelectItem value="retired">Retraité(e)</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {formData.start_period === 'Date de mon choix' && (
+                {watch("personal_situation") === "other" && (
                   <div>
-                    <Label>Date de début préférée</Label>
-                    <DatePicker
-                      date={formData.preferred_start_date}
-                      setDate={(date) => setFormData(prev => ({ ...prev, preferred_start_date: date }))}
-                      className="mt-1"
+                    <Label htmlFor="other_personal_situation">Précisez votre situation</Label>
+                    <Input
+                      id="other_personal_situation"
+                      {...register("other_personal_situation")}
+                      placeholder="Précisez votre situation personnelle"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Expérience politique */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-coaching-800 border-b pb-2">
+                  Expérience politique
+                </h3>
+
+                <div>
+                  <Label htmlFor="motivation">Motivation *</Label>
+                  <Textarea
+                    id="motivation"
+                    {...register("motivation", { required: "La motivation est requise" })}
+                    placeholder="Décrivez votre motivation à vous lancer en politique"
+                    className="min-h-[100px]"
+                  />
+                  {errors.motivation && (
+                    <p className="text-red-500 text-sm mt-1">{errors.motivation.message as string}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="political_situation">Situation politique actuelle *</Label>
+                  <Select onValueChange={(value) => setValue("political_situation", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre situation politique" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member_of_party">Membre d'un parti politique</SelectItem>
+                      <SelectItem value="elected_official">Élu(e) local(e)</SelectItem>
+                      <SelectItem value="candidate">Candidat(e) à une élection</SelectItem>
+                      <SelectItem value="activist">Militant(e) associatif(ve)</SelectItem>
+                      <SelectItem value="citizen">Simple citoyen(ne) intéressé(e)</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {watch("political_situation") === "other" && (
+                  <div>
+                    <Label htmlFor="other_political_situation">Précisez votre situation</Label>
+                    <Input
+                      id="other_political_situation"
+                      {...register("other_political_situation")}
+                      placeholder="Précisez votre situation politique"
                     />
                   </div>
                 )}
 
-                {formData.format_preference === 'En Présentiel dans nos bureaux' && (
-                  <div>
-                    <Label>Options de commodité (présentiel)</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                      {[
-                        "De L'eau",
-                        "Boisson chaude (Thé ou Café)",
-                        "Boisson fraîche (jus de fruit)",
-                        "Amuse bouche sec (Amandes, arachides, ....)",
-                        "Des fruits"
-                      ].map(option => (
-                        <div key={option} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`comfort_${option}`}
-                            checked={formData.comfort_options.includes(option)}
-                            onCheckedChange={(checked) => handleArrayChange('comfort_options', option, !!checked)}
-                          />
-                          <Label htmlFor={`comfort_${option}`} className="text-sm">{option}</Label>
-                        </div>
-                      ))}
+                <div>
+                  <Label htmlFor="political_experience">Expérience politique (si applicable)</Label>
+                  <Textarea
+                    id="political_experience"
+                    {...register("political_experience")}
+                    placeholder="Décrivez votre expérience politique"
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+
+              {/* Compétences et obstacles */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-coaching-800 border-b pb-2">
+                  Compétences et obstacles
+                </h3>
+
+                <div>
+                  <Label htmlFor="skills">Vos atouts et compétences *</Label>
+                  <Textarea
+                    id="skills"
+                    {...register("skills", { required: "Vos atouts et compétences sont requis" })}
+                    placeholder="Décrivez vos atouts et compétences pour réussir en politique"
+                    className="min-h-[100px]"
+                  />
+                  {errors.skills && (
+                    <p className="text-red-500 text-sm mt-1">{errors.skills.message as string}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label>Obstacles perçus</Label>
+                  <div className="flex flex-col space-y-2">
+                    <div>
+                      <Checkbox id="obstacle_time" {...register("obstacles")} value="time" />
+                      <Label htmlFor="obstacle_time" className="ml-2">Manque de temps</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="obstacle_money" {...register("obstacles")} value="money" />
+                      <Label htmlFor="obstacle_money" className="ml-2">Manque de moyens financiers</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="obstacle_network" {...register("obstacles")} value="network" />
+                      <Label htmlFor="obstacle_network" className="ml-2">Manque de réseau</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="obstacle_knowledge" {...register("obstacles")} value="knowledge" />
+                      <Label htmlFor="obstacle_knowledge" className="ml-2">Manque de connaissances</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="obstacle_support" {...register("obstacles")} value="support" />
+                      <Label htmlFor="obstacle_support" className="ml-2">Manque de soutien</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="obstacle_other" {...register("obstacles")} value="other" />
+                      <Label htmlFor="obstacle_other" className="ml-2">Autre</Label>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Options de confort */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-coaching-800 border-b pb-2">
+                  Options de confort
+                </h3>
+
+                <div>
+                  <Label>Ce qui vous mettrait le plus à l'aise</Label>
+                  <div className="flex flex-col space-y-2">
+                    <div>
+                      <Checkbox id="comfort_media" {...register("comfort_options")} value="media" />
+                      <Label htmlFor="comfort_media" className="ml-2">Préparation aux interviews et médias</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="comfort_speaking" {...register("comfort_options")} value="speaking" />
+                      <Label htmlFor="comfort_speaking" className="ml-2">Formation à la prise de parole en public</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="comfort_strategy" {...register("comfort_options")} value="strategy" />
+                      <Label htmlFor="comfort_strategy" className="ml-2">Conseils en stratégie politique</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="comfort_funding" {...register("comfort_options")} value="funding" />
+                      <Label htmlFor="comfort_funding" className="ml-2">Aide à la recherche de financement</Label>
+                    </div>
+                    <div>
+                      <Checkbox id="comfort_team" {...register("comfort_options")} value="team" />
+                      <Label htmlFor="comfort_team" className="ml-2">Constitution d'une équipe de campagne</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations complémentaires */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-coaching-800 border-b pb-2">
+                  Informations complémentaires
+                </h3>
+
+                <div>
+                  <Label htmlFor="additional_info">Informations complémentaires</Label>
+                  <Textarea
+                    id="additional_info"
+                    {...register("additional_info")}
+                    placeholder="Si vous souhaitez ajouter des informations complémentaires, faites-le ici"
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+
+              {/* Conditions générales */}
+              <div className="flex items-center space-x-2">
+                <Checkbox id="accept_terms" {...register("accept_terms", { required: "Vous devez accepter les conditions générales" })} />
+                <Label htmlFor="accept_terms">
+                  J'accepte les <a href="#" className="text-coaching-600 hover:underline">conditions générales</a> *
+                </Label>
+                {errors.accept_terms && (
+                  <p className="text-red-500 text-sm mt-1">{errors.accept_terms.message as string}</p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Investissement */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Modalités de paiement</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-amber-800 mb-2">Valeur de votre investissement :</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><strong>1500$ USD</strong> - Paiement en entier</p>
-                    <p><strong>1800$ USD</strong> - Payable en 2 tranches (1000$ à l'inscription)</p>
-                  </div>
-                  <p className="text-xs text-amber-700 mt-2">
-                    <strong>Important :</strong> Nous ne prenons que 3 personnes par mois par souci d'efficacité
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Option de paiement *</Label>
-                  <RadioGroup 
-                    value={formData.payment_option} 
-                    onValueChange={(value) => handleInputChange('payment_option', value)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Je souhaite payer entièrement pour mon accompagnement" id="pay_full" />
-                      <Label htmlFor="pay_full">Je souhaite payer entièrement (1500$ USD)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Je souhaite payer en 2 tranches" id="pay_installments" />
-                      <Label htmlFor="pay_installments">Je souhaite payer en 2 tranches (1800$ USD)</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label>Méthode de paiement préférée *</Label>
-                  <Select value={formData.payment_method} onValueChange={(value) => handleInputChange('payment_method', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Carte bancaire">Carte bancaire</SelectItem>
-                      <SelectItem value="Virement bancaire">Virement bancaire</SelectItem>
-                      <SelectItem value="Mobile Money">Mobile Money</SelectItem>
-                      <SelectItem value="PayPal">PayPal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Submit */}
-            <div className="text-center">
-              <Button
-                type="submit"
+              <Button 
+                type="submit" 
+                className="w-full bg-coaching-600 hover:bg-coaching-700"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-8 py-3 text-lg"
               >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                    Envoi en cours...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-5 w-5 mr-2" />
-                    Envoyer ma candidature
-                  </>
-                )}
+                {isSubmitting ? "Envoi en cours..." : "Envoyer ma candidature"}
               </Button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

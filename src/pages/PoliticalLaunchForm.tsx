@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -19,21 +20,52 @@ interface Country {
 }
 
 const countries: Country[] = [
+  // Pays européens
   { code: "FR", name: "France", flag: "🇫🇷", phoneCode: "33" },
-  { code: "CA", name: "Canada", flag: "🇨🇦", phoneCode: "1" },
-  { code: "BE", name: "Belgique", flag: "🇧🇪", phoneCode: "32" },
-  { code: "CH", name: "Suisse", flag: "🇨🇭", phoneCode: "41" },
-  { code: "LU", name: "Luxembourg", flag: "🇱🇺", phoneCode: "352" },
-  { code: "MC", name: "Monaco", flag: "🇲🇨", phoneCode: "377" },
-  { code: "US", name: "États-Unis", flag: "🇺🇸", phoneCode: "1" },
-  { code: "GB", name: "Royaume-Uni", flag: "🇬🇧", phoneCode: "44" },
   { code: "DE", name: "Allemagne", flag: "🇩🇪", phoneCode: "49" },
   { code: "ES", name: "Espagne", flag: "🇪🇸", phoneCode: "34" },
   { code: "IT", name: "Italie", flag: "🇮🇹", phoneCode: "39" },
   { code: "PT", name: "Portugal", flag: "🇵🇹", phoneCode: "351" },
+  { code: "BE", name: "Belgique", flag: "🇧🇪", phoneCode: "32" },
+  { code: "CH", name: "Suisse", flag: "🇨🇭", phoneCode: "41" },
+  { code: "LU", name: "Luxembourg", flag: "🇱🇺", phoneCode: "352" },
+  { code: "MC", name: "Monaco", flag: "🇲🇨", phoneCode: "377" },
+  { code: "GB", name: "Royaume-Uni", flag: "🇬🇧", phoneCode: "44" },
+  { code: "AT", name: "Autriche", flag: "🇦🇹", phoneCode: "43" },
+  { code: "NL", name: "Pays-Bas", flag: "🇳🇱", phoneCode: "31" },
+  { code: "SE", name: "Suède", flag: "🇸🇪", phoneCode: "46" },
+  { code: "NO", name: "Norvège", flag: "🇳🇴", phoneCode: "47" },
+  { code: "DK", name: "Danemark", flag: "🇩🇰", phoneCode: "45" },
+  { code: "FI", name: "Finlande", flag: "🇫🇮", phoneCode: "358" },
+  { code: "PL", name: "Pologne", flag: "🇵🇱", phoneCode: "48" },
+  { code: "CZ", name: "République tchèque", flag: "🇨🇿", phoneCode: "420" },
+  { code: "GR", name: "Grèce", flag: "🇬🇷", phoneCode: "30" },
+  
+  // Pays africains
   { code: "DZ", name: "Algérie", flag: "🇩🇿", phoneCode: "213" },
   { code: "MA", name: "Maroc", flag: "🇲🇦", phoneCode: "212" },
   { code: "TN", name: "Tunisie", flag: "🇹🇳", phoneCode: "216" },
+  { code: "EG", name: "Égypte", flag: "🇪🇬", phoneCode: "20" },
+  { code: "NG", name: "Nigeria", flag: "🇳🇬", phoneCode: "234" },
+  { code: "ZA", name: "Afrique du Sud", flag: "🇿🇦", phoneCode: "27" },
+  { code: "KE", name: "Kenya", flag: "🇰🇪", phoneCode: "254" },
+  { code: "GH", name: "Ghana", flag: "🇬🇭", phoneCode: "233" },
+  { code: "ET", name: "Éthiopie", flag: "🇪🇹", phoneCode: "251" },
+  { code: "UG", name: "Ouganda", flag: "🇺🇬", phoneCode: "256" },
+  { code: "SN", name: "Sénégal", flag: "🇸🇳", phoneCode: "221" },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", phoneCode: "225" },
+  { code: "CM", name: "Cameroun", flag: "🇨🇲", phoneCode: "237" },
+  { code: "BF", name: "Burkina Faso", flag: "🇧🇫", phoneCode: "226" },
+  { code: "ML", name: "Mali", flag: "🇲🇱", phoneCode: "223" },
+  { code: "NE", name: "Niger", flag: "🇳🇪", phoneCode: "227" },
+  { code: "TD", name: "Tchad", flag: "🇹🇩", phoneCode: "235" },
+  { code: "RW", name: "Rwanda", flag: "🇷🇼", phoneCode: "250" },
+  { code: "MG", name: "Madagascar", flag: "🇲🇬", phoneCode: "261" },
+  { code: "MW", name: "Malawi", flag: "🇲🇼", phoneCode: "265" },
+  
+  // Autres pays
+  { code: "CA", name: "Canada", flag: "🇨🇦", phoneCode: "1" },
+  { code: "US", name: "États-Unis", flag: "🇺🇸", phoneCode: "1" },
   { code: "other", name: "Autre", flag: "🌐", phoneCode: "" }
 ];
 
@@ -417,5 +449,3 @@ const PoliticalLaunchForm = () => {
 };
 
 export default PoliticalLaunchForm;
-
-}

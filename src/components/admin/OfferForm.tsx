@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Offer } from "@/services/offerService";
-import ImageUpload from "@/components/admin/ImageUpload";
+import EnhancedImageUpload from "@/components/admin/EnhancedImageUpload";
 
 interface OfferFormProps {
   currentOffer: Partial<Offer> | null;
@@ -111,7 +111,7 @@ const OfferForm = ({
           />
         </div>
         <div className="grid gap-2">
-          <ImageUpload
+          <EnhancedImageUpload
             value={currentOffer?.image_url || ""}
             onChange={(imageUrl) =>
               onChange({ ...currentOffer!, image_url: imageUrl })

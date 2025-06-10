@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -144,6 +143,7 @@ const PoliticalApplicationsList = () => {
       pending: { label: 'En attente', variant: 'secondary' as const },
       approved: { label: 'Approuvé', variant: 'default' as const },
       rejected: { label: 'Rejeté', variant: 'destructive' as const },
+      schedule_proposed: { label: 'Planning proposé', variant: 'outline' as const },
       payment_pending: { label: 'Paiement en attente', variant: 'outline' as const },
       completed: { label: 'Terminé', variant: 'default' as const }
     };
@@ -361,6 +361,7 @@ const PoliticalApplicationsList = () => {
                   <SelectItem value="pending">En attente</SelectItem>
                   <SelectItem value="approved">Approuvé</SelectItem>
                   <SelectItem value="rejected">Rejeté</SelectItem>
+                  <SelectItem value="schedule_proposed">Planning proposé</SelectItem>
                   <SelectItem value="payment_pending">Paiement en attente</SelectItem>
                   <SelectItem value="completed">Terminé</SelectItem>
                 </SelectContent>
@@ -409,3 +410,5 @@ const PoliticalApplicationsList = () => {
 };
 
 export default PoliticalApplicationsList;
+
+</initial_code>

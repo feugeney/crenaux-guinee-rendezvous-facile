@@ -173,6 +173,39 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_images: {
+        Row: {
+          blob_url: string | null
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string
+          original_url: string
+          size: number
+          updated_at: string
+        }
+        Insert: {
+          blob_url?: string | null
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type: string
+          original_url: string
+          size: number
+          updated_at?: string
+        }
+        Update: {
+          blob_url?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string
+          original_url?: string
+          size?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           category: string | null

@@ -92,8 +92,8 @@ const PoliticalLaunchForm = () => {
         description: "Nous reviendrons vers vous dans les plus brefs délais.",
       });
 
-      // Reset form or redirect
-      window.location.href = '/';
+      // Redirect to success page
+      window.location.href = '/political-launch-success';
     } catch (error: any) {
       console.error('Erreur lors de l\'envoi:', error);
       toast({
@@ -417,3 +417,5 @@ const PoliticalLaunchForm = () => {
 };
 
 export default PoliticalLaunchForm;
+
+}

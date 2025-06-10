@@ -24,6 +24,7 @@ import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
 import AdminPoliticalLaunchSchedule from './pages/AdminPoliticalLaunchSchedule';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
+import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/strategic-consultation" element={<StrategicConsultation />} />
           <Route path="/political-launch" element={<PoliticalLaunchForm />} />
+          <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
           
           {/* Admin routes */}
           <Route path="/admin" element={<Admin />} />

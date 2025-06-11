@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,7 +44,7 @@ const AdminPoliticalLaunchSchedule = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Planning state
+  // Planning state - Changé de 6 à 8 séances
   const [startDate, setStartDate] = useState<Date>();
   const [sessionDates, setSessionDates] = useState<Date[]>([]);
   const [followUpStartDate, setFollowUpStartDate] = useState<Date>();
@@ -80,7 +81,7 @@ const AdminPoliticalLaunchSchedule = () => {
   };
 
   const addSessionDate = () => {
-    if (sessionDates.length < 6) {
+    if (sessionDates.length < 8) { // Changé de 6 à 8
       setSessionDates([...sessionDates, new Date()]);
     }
   };
@@ -123,10 +124,10 @@ const AdminPoliticalLaunchSchedule = () => {
   };
 
   const handleSaveSchedule = async () => {
-    if (!application || !startDate || sessionDates.length !== 6 || !followUpStartDate || !followUpEndDate) {
+    if (!application || !startDate || sessionDates.length !== 8 || !followUpStartDate || !followUpEndDate) {
       toast({
         title: "Erreur",
-        description: "Veuillez remplir tous les champs requis (6 séances + période de suivi)",
+        description: "Veuillez remplir tous les champs requis (8 séances + période de suivi)",
         variant: "destructive",
       });
       return;
@@ -148,12 +149,15 @@ const AdminPoliticalLaunchSchedule = () => {
         created_at: new Date().toISOString()
       };
 
+      // Mettre à jour l'application avec le planning et le statut
       const { error } = await supabase
         .from('political_launch_applications')
         .update({
-          status: 'schedule_proposed',
+          status: 'payment_pending',
           proposed_schedule: scheduleData,
-          admin_response: adminNotes
+          admin_response: adminNotes,
+          payment_link: paymentLink,
+          schedule_validated: true
         })
         .eq('id', id);
 
@@ -171,7 +175,7 @@ const AdminPoliticalLaunchSchedule = () => {
           <h3>📅 Planning de votre programme</h3>
           <p><strong>Date de début :</strong> ${startDate.toLocaleDateString('fr-FR')}</p>
           
-          <h4>🎯 Séances intensives de coaching :</h4>
+          <h4>🎯 Séances intensives de coaching (8 séances) :</h4>
           <ul>
             ${sessionDates.map((date, index) => 
               `<li>Séance ${index + 1} : ${date.toLocaleDateString('fr-FR')}</li>`
@@ -204,7 +208,7 @@ const AdminPoliticalLaunchSchedule = () => {
 
       toast({
         title: "Succès",
-        description: "Planning proposé et envoyé au client par email avec le lien de paiement",
+        description: "Planning validé et lien de paiement envoyé au client par email",
       });
 
       navigate('/admin/political-launch');
@@ -306,7 +310,7 @@ const AdminPoliticalLaunchSchedule = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5" />
-              <span>Planification du Programme</span>
+              <span>Planification du Programme (8 séances)</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -320,9 +324,9 @@ const AdminPoliticalLaunchSchedule = () => {
               />
             </div>
 
-            {/* 6 séances intensives */}
+            {/* 8 séances intensives */}
             <div>
-              <Label>6 Séances intensives de coaching *</Label>
+              <Label>8 Séances intensives de coaching *</Label>
               <div className="space-y-3 mt-2">
                 {sessionDates.map((date, index) => (
                   <div key={index} className="flex items-center space-x-2">
@@ -345,14 +349,14 @@ const AdminPoliticalLaunchSchedule = () => {
                     </Button>
                   </div>
                 ))}
-                {sessionDates.length < 6 && (
+                {sessionDates.length < 8 && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={addSessionDate}
                     className="w-full"
                   >
-                    Ajouter une séance ({sessionDates.length}/6)
+                    Ajouter une séance ({sessionDates.length}/8)
                   </Button>
                 )}
               </div>
@@ -403,7 +407,7 @@ const AdminPoliticalLaunchSchedule = () => {
           </Button>
           <Button
             onClick={handleSaveSchedule}
-            disabled={isSaving || !startDate || sessionDates.length !== 6 || !followUpStartDate || !followUpEndDate}
+            disabled={isSaving || !startDate || sessionDates.length !== 8 || !followUpStartDate || !followUpEndDate}
             className="bg-green-600 hover:bg-green-700"
           >
             {isSaving ? (
@@ -414,7 +418,7 @@ const AdminPoliticalLaunchSchedule = () => {
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Proposer le Planning avec Paiement
+                Valider & Envoyer le Lien de Paiement
               </>
             )}
           </Button>

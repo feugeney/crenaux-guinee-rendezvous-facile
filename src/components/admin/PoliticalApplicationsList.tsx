@@ -161,6 +161,11 @@ const PoliticalApplicationsList = () => {
     setIsResponseOpen(true);
   };
 
+  const handleApprove = (applicationId: string) => {
+    // Rediriger directement vers la page de planification
+    window.open(`/admin/political-launch-schedule/${applicationId}`, '_blank');
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -318,7 +323,19 @@ const PoliticalApplicationsList = () => {
                   Répondre
                 </Button>
 
-                {app.status === 'approved' && (
+                {app.status === 'pending' && (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => handleApprove(app.id)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Approuver & Planifier
+                  </Button>
+                )}
+
+                {(app.status === 'approved' || app.status === 'schedule_proposed') && (
                   <Button 
                     variant="outline" 
                     size="sm"

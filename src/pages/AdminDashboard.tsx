@@ -10,17 +10,17 @@ import UpcomingBookings from '@/components/admin/UpcomingBookings';
 const AdminDashboard = () => {
   return (
     <AdminHorizontalLayout>
-      <div className="space-y-8">
-        <DashboardHeader />
-        <DashboardStats />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-8">
-            <QuickActions />
-            <RecentActivity />
-          </div>
-          <div>
-            <UpcomingBookings />
-          </div>
+      <DashboardHeader />
+      
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-8">
+          <DashboardStats />
+          <QuickActions />
+        </div>
+        
+        <div className="space-y-8">
+          <UpcomingBookings />
+          <RecentActivity />
         </div>
       </div>
     </AdminHorizontalLayout>

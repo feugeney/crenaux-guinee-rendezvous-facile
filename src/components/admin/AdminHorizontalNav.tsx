@@ -23,12 +23,8 @@ export const AdminHorizontalNav = () => {
       path: '/admin/offers'
     },
     {
-      title: 'Rendez-vous',
-      path: '/admin/bookings'
-    },
-    {
-      title: 'Prioritaires',
-      path: '/admin/priority-requests',
+      title: 'Rendez-vous Prioritaires Urgent',
+      path: '/admin/bookings',
       badge: 'Urgent',
       badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
     },
@@ -62,7 +58,7 @@ export const AdminHorizontalNav = () => {
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-1">
             <div className="flex items-center space-x-3 mr-8">
@@ -77,18 +73,18 @@ export const AdminHorizontalNav = () => {
               </div>
             </div>
             
-            <div className="hidden md:flex space-x-1">
+            <div className="hidden md:flex space-x-1 overflow-x-auto">
               {menuItems.map((item) => (
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                     item.active || location.pathname === item.path
                       ? 'bg-slate-100 text-slate-800 border border-slate-200/50 shadow-sm' 
                       : 'text-gray-600 hover:text-slate-800 hover:bg-gray-50/80'
                   }`}
                 >
-                  <span>{item.title}</span>
+                  <span className="text-xs lg:text-sm">{item.title}</span>
                   {item.badge && (
                     <Badge 
                       variant="secondary" 

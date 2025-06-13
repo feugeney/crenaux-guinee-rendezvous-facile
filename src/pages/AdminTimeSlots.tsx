@@ -10,9 +10,46 @@ import TimeSlotCalendar from '@/components/admin/TimeSlotCalendar';
 
 const AdminTimeSlots = () => {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [timeSlots, setTimeSlots] = useState([]);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handleEditTimeSlot = async (id: string) => {
+    console.log('Edit time slot:', id);
+    // TODO: Implémenter l'édition
+  };
+
+  const handleDeleteTimeSlot = async (timeSlot: any) => {
+    console.log('Delete time slot:', timeSlot);
+    // TODO: Implémenter la suppression
+  };
+
+  const handleCreateTimeSlot = async () => {
+    console.log('Create time slot');
+    // TODO: Implémenter la création
+  };
+
+  const handleSubmitTimeSlot = (data: any) => {
+    console.log('Submit time slot:', data);
+    // TODO: Implémenter la soumission
+    handleRefresh();
+  };
+
+  const handleTimeSlotEdit = async (timeSlot: any) => {
+    console.log('Time slot edit:', timeSlot);
+    // TODO: Implémenter l'édition
+  };
+
+  const handleTimeSlotDelete = async (id: string) => {
+    console.log('Time slot delete:', id);
+    // TODO: Implémenter la suppression
+  };
+
+  const handleTimeSlotCreate = async (timeSlot: any) => {
+    console.log('Time slot create:', timeSlot);
+    // TODO: Implémenter la création
   };
 
   return (
@@ -42,10 +79,10 @@ const AdminTimeSlots = () => {
               <CardContent>
                 <TimeSlotCalendar 
                   key={refreshKey}
-                  timeSlots={[]}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
-                  onCreate={() => {}}
+                  timeSlots={timeSlots}
+                  onEdit={handleEditTimeSlot}
+                  onDelete={handleDeleteTimeSlot}
+                  onCreate={handleCreateTimeSlot}
                 />
               </CardContent>
             </Card>
@@ -60,7 +97,7 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SimpleTimeSlotForm onCreated={handleRefresh} />
+                <SimpleTimeSlotForm onSubmit={handleSubmitTimeSlot} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -88,7 +125,13 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SimpleTimeSlotList key={refreshKey} onUpdated={handleRefresh} />
+                <SimpleTimeSlotList 
+                  key={refreshKey} 
+                  timeSlots={timeSlots}
+                  onEdit={handleTimeSlotEdit}
+                  onDelete={handleTimeSlotDelete}
+                  onCreate={handleTimeSlotCreate}
+                />
               </CardContent>
             </Card>
           </TabsContent>

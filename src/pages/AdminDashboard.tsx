@@ -1,11 +1,11 @@
 
 import React from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
-import { DashboardHeader } from '@/components/admin/DashboardHeader';
-import { DashboardStats } from '@/components/admin/DashboardStats';
+import DashboardHeader from '@/components/admin/DashboardHeader';
+import DashboardStats from '@/components/admin/DashboardStats';
 import QuickActions from '@/components/admin/QuickActions';
-import { RecentActivity } from '@/components/admin/RecentActivity';
-import { UpcomingBookings } from '@/components/admin/UpcomingBookings';
+import RecentActivity from '@/components/admin/RecentActivity';
+import UpcomingBookings from '@/components/admin/UpcomingBookings';
 
 const AdminDashboard = () => {
   return (

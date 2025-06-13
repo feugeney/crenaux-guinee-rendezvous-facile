@@ -1,7 +1,7 @@
 
 import React from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
-import { PoliticalLaunchCard } from '@/components/admin/PoliticalLaunchCard';
+import PoliticalLaunchCard from '@/components/admin/PoliticalLaunchCard';
 import PoliticalApplicationsList from '@/components/admin/PoliticalApplicationsList';
 
 const AdminPoliticalLaunch = () => {

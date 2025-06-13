@@ -40,7 +40,13 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TimeSlotCalendar key={refreshKey} />
+                <TimeSlotCalendar 
+                  key={refreshKey}
+                  timeSlots={[]}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                  onCreate={() => {}}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -54,7 +60,7 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SimpleTimeSlotForm onSlotCreated={handleRefresh} />
+                <SimpleTimeSlotForm onCreated={handleRefresh} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -68,7 +74,7 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BulkTimeSlotCreator onSlotsCreated={handleRefresh} />
+                <BulkTimeSlotCreator />
               </CardContent>
             </Card>
           </TabsContent>
@@ -82,7 +88,7 @@ const AdminTimeSlots = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SimpleTimeSlotList key={refreshKey} onSlotUpdated={handleRefresh} />
+                <SimpleTimeSlotList key={refreshKey} onUpdated={handleRefresh} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -2,11 +2,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Crown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Crown, LogOut } from 'lucide-react';
 
 export const AdminHorizontalNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuthenticated');
+    navigate('/admin');
+  };
 
   const menuItems = [
     {
@@ -23,7 +29,7 @@ export const AdminHorizontalNav = () => {
       path: '/admin/offers'
     },
     {
-      title: 'Rendez-vous Prioritaires Urgent',
+      title: 'Rendez-vous',
       path: '/admin/bookings',
       badge: 'Urgent',
       badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
@@ -98,8 +104,21 @@ export const AdminHorizontalNav = () => {
             </div>
           </div>
 
+          {/* Bouton de déconnexion */}
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Déconnexion
+            </Button>
+          </div>
+
           {/* Mobile menu dropdown */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
             <select 
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white shadow-sm"
               value={location.pathname}
@@ -111,6 +130,14 @@ export const AdminHorizontalNav = () => {
                 </option>
               ))}
             </select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

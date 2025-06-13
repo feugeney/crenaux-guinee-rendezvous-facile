@@ -436,30 +436,57 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          age: number | null
           created_at: string
           email: string | null
           first_name: string | null
           id: string
+          id_document_number: string | null
+          id_document_type: string | null
+          id_document_url: string | null
+          is_phone_verified: boolean | null
           last_name: string | null
           phone: string | null
+          phone_number: string | null
+          preferred_payment_method: string | null
+          profession: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          age?: number | null
           created_at?: string
           email?: string | null
           first_name?: string | null
           id?: string
+          id_document_number?: string | null
+          id_document_type?: string | null
+          id_document_url?: string | null
+          is_phone_verified?: boolean | null
           last_name?: string | null
           phone?: string | null
+          phone_number?: string | null
+          preferred_payment_method?: string | null
+          profession?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          age?: number | null
           created_at?: string
           email?: string | null
           first_name?: string | null
           id?: string
+          id_document_number?: string | null
+          id_document_type?: string | null
+          id_document_url?: string | null
+          is_phone_verified?: boolean | null
           last_name?: string | null
           phone?: string | null
+          phone_number?: string | null
+          preferred_payment_method?: string | null
+          profession?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -508,6 +535,101 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_goals: {
+        Row: {
+          created_at: string | null
+          current_amount: number | null
+          daily_amount: number
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_contribution_date: string | null
+          name: string
+          start_date: string
+          target_amount: number | null
+          updated_at: string | null
+          user_id: string
+          withdrawal_period: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_amount?: number | null
+          daily_amount: number
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_contribution_date?: string | null
+          name: string
+          start_date?: string
+          target_amount?: number | null
+          updated_at?: string | null
+          user_id: string
+          withdrawal_period: string
+        }
+        Update: {
+          created_at?: string | null
+          current_amount?: number | null
+          daily_amount?: number
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_contribution_date?: string | null
+          name?: string
+          start_date?: string
+          target_amount?: number | null
+          updated_at?: string | null
+          user_id?: string
+          withdrawal_period?: string
+        }
+        Relationships: []
+      }
+      savings_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          payment_method: string | null
+          savings_goal_id: string
+          status: string
+          transaction_id: string | null
+          transaction_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          savings_goal_id: string
+          status?: string
+          transaction_id?: string | null
+          transaction_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          savings_goal_id?: string
+          status?: string
+          transaction_id?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_transactions_savings_goal_id_fkey"
+            columns: ["savings_goal_id"]
+            isOneToOne: false
+            referencedRelation: "savings_goals"
             referencedColumns: ["id"]
           },
         ]
@@ -736,6 +858,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reminder_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_reminder_sent: string | null
+          notification_method: string | null
+          phone_number: string | null
+          reminder_enabled: boolean | null
+          reminder_time: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_reminder_sent?: string | null
+          notification_method?: string | null
+          phone_number?: string | null
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_reminder_sent?: string | null
+          notification_method?: string | null
+          phone_number?: string | null
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       pending_testimonials: {
@@ -833,6 +1012,10 @@ export type Database = {
         Args: { table_name: string }
         Returns: boolean
       }
+      create_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_bookings_table: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -845,9 +1028,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -962,6 +1152,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "user"],
+    },
   },
 } as const

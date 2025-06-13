@@ -1,15 +1,22 @@
 
 import React from 'react';
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
+import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
+import { PoliticalLaunchCard } from '@/components/admin/PoliticalLaunchCard';
 import PoliticalApplicationsList from '@/components/admin/PoliticalApplicationsList';
 
 const AdminPoliticalLaunch = () => {
   return (
-    <AdminDashboardLayout>
-      <div className="container mx-auto py-6 px-4">
+    <AdminHorizontalLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Programme "Je me lance en politique"</h1>
+          <p className="text-gray-600 mt-2">Gestion des candidatures et du programme VIP</p>
+        </div>
+        
+        <PoliticalLaunchCard />
         <PoliticalApplicationsList />
       </div>
-    </AdminDashboardLayout>
+    </AdminHorizontalLayout>
   );
 };
 

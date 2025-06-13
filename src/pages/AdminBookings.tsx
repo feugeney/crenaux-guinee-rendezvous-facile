@@ -1,45 +1,31 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UpcomingBookings from '@/components/admin/UpcomingBookings';
-import PriorityBookingsList from '@/components/PriorityBookingsList';
+import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
 import BookingsList from '@/components/admin/BookingsList';
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const AdminBookings = () => {
   return (
-    <AdminDashboardLayout>
+    <AdminHorizontalLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des Réservations</h1>
-            <p className="text-gray-600 mt-2">
-              Gérez tous les rendez-vous et réservations
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des rendez-vous</h1>
+          <p className="text-gray-600 mt-2">Consultez et gérez tous les rendez-vous</p>
         </div>
-        
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="upcoming">Rendez-vous à venir</TabsTrigger>
-            <TabsTrigger value="priority">Demandes prioritaires</TabsTrigger>
-            <TabsTrigger value="all">Toutes les réservations</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upcoming">
-            <UpcomingBookings />
-          </TabsContent>
-          
-          <TabsContent value="priority">
-            <PriorityBookingsList limit={50} showHeader={false} />
-          </TabsContent>
-          
-          <TabsContent value="all">
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Liste des rendez-vous</CardTitle>
+            <CardDescription>
+              Tous les rendez-vous programmés et leur statut
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <BookingsList />
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
-    </AdminDashboardLayout>
+    </AdminHorizontalLayout>
   );
 };
 

@@ -1,32 +1,29 @@
 
 import React from 'react';
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
-import DashboardHeader from '@/components/admin/DashboardHeader';
-import DashboardStats from '@/components/admin/DashboardStats';
+import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
+import { DashboardHeader } from '@/components/admin/DashboardHeader';
+import { DashboardStats } from '@/components/admin/DashboardStats';
 import QuickActions from '@/components/admin/QuickActions';
-import RecentActivity from '@/components/admin/RecentActivity';
-import PoliticalLaunchCard from '@/components/admin/PoliticalLaunchCard';
+import { RecentActivity } from '@/components/admin/RecentActivity';
+import { UpcomingBookings } from '@/components/admin/UpcomingBookings';
 
 const AdminDashboard = () => {
   return (
-    <AdminDashboardLayout>
+    <AdminHorizontalLayout>
       <div className="space-y-8">
         <DashboardHeader />
-        
         <DashboardStats />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
             <QuickActions />
             <RecentActivity />
           </div>
-          
-          <div className="space-y-6">
-            <PoliticalLaunchCard />
+          <div>
+            <UpcomingBookings />
           </div>
         </div>
       </div>
-    </AdminDashboardLayout>
+    </AdminHorizontalLayout>
   );
 };
 

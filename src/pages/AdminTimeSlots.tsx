@@ -1,169 +1,94 @@
 
-import React, { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SimpleTimeSlotForm from '@/components/admin/SimpleTimeSlotForm';
 import SimpleTimeSlotList from '@/components/admin/SimpleTimeSlotList';
-import { supabase } from '@/lib/supabase';
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
-
-interface SimpleTimeSlot {
-  id: string;
-  specific_date: string;
-  start_time: string;
-  end_time: string;
-  available: boolean;
-}
+import BulkTimeSlotCreator from '@/components/admin/BulkTimeSlotCreator';
+import TimeSlotCalendar from '@/components/admin/TimeSlotCalendar';
 
 const AdminTimeSlots = () => {
-  const [timeSlots, setTimeSlots] = useState<SimpleTimeSlot[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const { toast } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    loadTimeSlots();
-  }, []);
-
-  const loadTimeSlots = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('time_slots')
-        .select('id, specific_date, start_time, end_time, available')
-        .order('specific_date', { ascending: true })
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-
-      // Filtrer pour ne garder que les créneaux avec une date spécifique
-      const filteredData = data.filter(slot => slot.specific_date !== null).map(slot => ({
-        id: slot.id,
-        specific_date: slot.specific_date,
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        available: slot.available
-      }));
-
-      setTimeSlots(filteredData);
-    } catch (error) {
-      console.error('Error loading time slots:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les créneaux horaires",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateTimeSlot = async (timeSlot: Omit<SimpleTimeSlot, 'id'>) => {
-    try {
-      const { error } = await supabase
-        .from('time_slots')
-        .insert({
-          specific_date: timeSlot.specific_date,
-          start_time: timeSlot.start_time,
-          end_time: timeSlot.end_time,
-          available: timeSlot.available,
-          day_of_week: new Date(timeSlot.specific_date).getDay(),
-          is_recurring: false
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Créneau créé avec succès"
-      });
-
-      await loadTimeSlots();
-    } catch (error: any) {
-      console.error('Error creating time slot:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le créneau",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEditTimeSlot = async (timeSlot: SimpleTimeSlot) => {
-    try {
-      const { error } = await supabase
-        .from('time_slots')
-        .update({
-          specific_date: timeSlot.specific_date,
-          start_time: timeSlot.start_time,
-          end_time: timeSlot.end_time,
-          available: timeSlot.available,
-          day_of_week: new Date(timeSlot.specific_date).getDay(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', timeSlot.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Créneau modifié avec succès"
-      });
-
-      await loadTimeSlots();
-    } catch (error: any) {
-      console.error('Error updating time slot:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de modifier le créneau",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteTimeSlot = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('time_slots')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Créneau supprimé avec succès"
-      });
-
-      await loadTimeSlots();
-    } catch (error: any) {
-      console.error('Error deleting time slot:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le créneau",
-        variant: "destructive"
-      });
-    }
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
-    <AdminDashboardLayout>
+    <AdminHorizontalLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des créneaux horaires</h1>
-            <p className="text-gray-600 mt-2">
-              Créez et gérez vos créneaux de consultation
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des créneaux horaires</h1>
+          <p className="text-gray-600 mt-2">Gérez vos disponibilités pour les consultations</p>
         </div>
 
-        <SimpleTimeSlotList
-          timeSlots={timeSlots}
-          onEdit={handleEditTimeSlot}
-          onDelete={handleDeleteTimeSlot}
-          onCreate={handleCreateTimeSlot}
-          loading={loading}
-        />
+        <Tabs defaultValue="calendar" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+            <TabsTrigger value="simple">Créer simple</TabsTrigger>
+            <TabsTrigger value="bulk">Création en lot</TabsTrigger>
+            <TabsTrigger value="list">Liste complète</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="calendar" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Calendrier des créneaux</CardTitle>
+                <CardDescription>
+                  Vue d'ensemble de vos créneaux disponibles et réservés
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TimeSlotCalendar key={refreshKey} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="simple" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Créer un créneau simple</CardTitle>
+                <CardDescription>
+                  Ajoutez un créneau horaire individuel
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SimpleTimeSlotForm onSlotCreated={handleRefresh} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bulk" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Création en lot</CardTitle>
+                <CardDescription>
+                  Créez plusieurs créneaux rapidement avec des modèles prédéfinis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BulkTimeSlotCreator onSlotsCreated={handleRefresh} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="list" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Liste de tous les créneaux</CardTitle>
+                <CardDescription>
+                  Gérez, modifiez et supprimez vos créneaux existants
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SimpleTimeSlotList key={refreshKey} onSlotUpdated={handleRefresh} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-    </AdminDashboardLayout>
+    </AdminHorizontalLayout>
   );
 };
 

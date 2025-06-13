@@ -2,19 +2,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Package, 
-  Bell, 
-  Settings, 
-  FileText, 
-  Users,
-  Crown,
-  AlertTriangle,
-  CheckCircle,
-  MessageSquare
-} from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 export const AdminHorizontalNav = () => {
   const navigate = useNavigate();
@@ -23,62 +11,51 @@ export const AdminHorizontalNav = () => {
   const menuItems = [
     {
       title: 'Dashboard',
-      icon: <LayoutDashboard className="h-4 w-4" />,
       path: '/admin/dashboard',
       active: location.pathname === '/admin/dashboard' || location.pathname === '/admin'
     },
     {
       title: 'Créneaux',
-      icon: <Calendar className="h-4 w-4" />,
       path: '/admin/time-slots'
     },
     {
       title: 'Offres',
-      icon: <Package className="h-4 w-4" />,
       path: '/admin/offers'
     },
     {
       title: 'Rendez-vous',
-      icon: <CheckCircle className="h-4 w-4" />,
       path: '/admin/bookings'
     },
     {
       title: 'Prioritaires',
-      icon: <AlertTriangle className="h-4 w-4 text-orange-500" />,
       path: '/admin/priority-requests',
       badge: 'Urgent',
       badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
     },
     {
       title: 'Politique',
-      icon: <Crown className="h-4 w-4 text-purple-500" />,
       path: '/admin/political-launch',
       badge: 'VIP',
       badgeColor: 'bg-purple-100 text-purple-800 border-purple-200'
     },
     {
       title: 'Témoignages',
-      icon: <MessageSquare className="h-4 w-4" />,
       path: '/admin/testimonials'
     },
     {
       title: 'Notifications',
-      icon: <Bell className="h-4 w-4" />,
       path: '/admin/notifications'
     },
     {
       title: 'Clients',
-      icon: <Users className="h-4 w-4" />,
       path: '/admin/clients'
     },
     {
       title: 'Stripe',
-      icon: <FileText className="h-4 w-4" />,
       path: '/admin/stripe-settings'
     },
     {
       title: 'Paramètres',
-      icon: <Settings className="h-4 w-4" />,
       path: '/admin/settings'
     }
   ];
@@ -111,8 +88,7 @@ export const AdminHorizontalNav = () => {
                       : 'text-gray-600 hover:text-slate-800 hover:bg-gray-50/80'
                   }`}
                 >
-                  {item.icon}
-                  <span className="hidden lg:block">{item.title}</span>
+                  <span>{item.title}</span>
                   {item.badge && (
                     <Badge 
                       variant="secondary" 

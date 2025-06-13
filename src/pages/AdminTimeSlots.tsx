@@ -16,18 +16,21 @@ const AdminTimeSlots = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  const handleEditTimeSlot = async (id: string) => {
-    console.log('Edit time slot:', id);
+  // For TimeSlotCalendar - onEdit expects (timeSlot: TimeSlot) => void
+  const handleEditTimeSlot = (timeSlot: any) => {
+    console.log('Edit time slot:', timeSlot);
     // TODO: Implémenter l'édition
   };
 
-  const handleDeleteTimeSlot = async (timeSlot: any) => {
-    console.log('Delete time slot:', timeSlot);
+  // For TimeSlotCalendar - onDelete expects (id: string) => Promise<void>
+  const handleDeleteTimeSlot = async (id: string) => {
+    console.log('Delete time slot:', id);
     // TODO: Implémenter la suppression
   };
 
-  const handleCreateTimeSlot = async () => {
-    console.log('Create time slot');
+  // For TimeSlotCalendar - onCreate expects (timeSlot: TimeSlot) => Promise<void>
+  const handleCreateTimeSlot = async (timeSlot: any) => {
+    console.log('Create time slot:', timeSlot);
     // TODO: Implémenter la création
   };
 

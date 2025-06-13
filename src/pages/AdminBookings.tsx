@@ -52,7 +52,7 @@ const AdminBookings = () => {
                 </div>
               </div>
             </CardContent>
-          </Car
+          </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200/50">
             <CardContent className="p-6">

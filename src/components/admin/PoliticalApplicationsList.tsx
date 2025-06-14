@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Eye, Calendar, Check, X, Send } from 'lucide-react';
+import { Eye, Calendar, Check, X, Send, Clock, CheckCircle } from 'lucide-react';
 
 interface PoliticalApplication {
   id: string;
@@ -166,6 +165,189 @@ const PoliticalApplicationsList = () => {
     window.open(`/admin/political-launch-schedule/${applicationId}`, '_blank');
   };
 
+  // Séparer les candidatures
+  const pendingApplications = applications.filter(app => app.status === 'pending');
+  const validatedApplications = applications.filter(app => 
+    app.status !== 'pending' && app.status !== 'rejected'
+  );
+
+  const renderApplicationCard = (app: PoliticalApplication) => (
+    <Card key={app.id}>
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{app.full_name}</CardTitle>
+            <CardDescription>{app.email} • {app.city_country}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {getStatusBadge(app.status)}
+            {app.schedule_validated && (
+              <Badge variant="outline" className="bg-green-50 text-green-700">
+                Planning validé
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <p className="text-sm text-gray-600">Profil professionnel</p>
+            <p className="font-medium">{app.professional_profile}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Sujet prioritaire</p>
+            <p className="font-medium">{app.preferred_topic}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Format préféré</p>
+            <p className="font-medium">{app.format_preference}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSelectedApp(app)}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Voir détails
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Détails de la candidature - {selectedApp?.full_name}</DialogTitle>
+              </DialogHeader>
+              {selectedApp && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Informations personnelles</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>Nom:</strong> {selectedApp.full_name}</p>
+                        <p><strong>Email:</strong> {selectedApp.email}</p>
+                        <p><strong>Téléphone:</strong> {selectedApp.phone}</p>
+                        <p><strong>Ville/Pays:</strong> {selectedApp.city_country}</p>
+                        <p><strong>Genre:</strong> {selectedApp.gender}</p>
+                        <p><strong>Âge:</strong> {selectedApp.age_group}</p>
+                        <p><strong>Profil:</strong> {selectedApp.professional_profile}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Préférences</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>Sujet prioritaire:</strong> {selectedApp.preferred_topic}</p>
+                        <p><strong>Format:</strong> {selectedApp.format_preference}</p>
+                        <p><strong>Contact:</strong> {selectedApp.contact_preference}</p>
+                        <p><strong>Période de début:</strong> {selectedApp.start_period}</p>
+                        <p><strong>Paiement:</strong> {selectedApp.payment_option}</p>
+                        <p><strong>Méthode:</strong> {selectedApp.payment_method}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Qualités de leadership</h4>
+                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.leadership_qualities}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Transformation désirée</h4>
+                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.desired_transformation}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Motivation pour la collaboration</h4>
+                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.why_collaboration}</p>
+                  </div>
+
+                  {selectedApp.political_situation && selectedApp.political_situation.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Situation politique</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedApp.political_situation.map((situation, index) => (
+                          <Badge key={index} variant="outline">{situation}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedApp.admin_response && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Réponse administrateur</h4>
+                      <p className="text-sm bg-blue-50 p-3 rounded">{selectedApp.admin_response}</p>
+                    </div>
+                  )}
+
+                  {selectedApp.payment_link && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Lien de paiement</h4>
+                      <a 
+                        href={selectedApp.payment_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {selectedApp.payment_link}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => openResponseDialog(app)}
+          >
+            <Send className="w-4 h-4 mr-1" />
+            Répondre
+          </Button>
+
+          {app.status === 'pending' && (
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => handleApprove(app.id)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Approuver & Planifier
+            </Button>
+          )}
+
+          {(app.status === 'approved' || app.status === 'schedule_proposed') && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(`/admin/political-launch-schedule/${app.id}`, '_blank')}
+            >
+              <Calendar className="w-4 h-4 mr-1" />
+              Planning
+            </Button>
+          )}
+
+          {app.proposed_schedule && !app.schedule_validated && (
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => validateSchedule(app.id)}
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Valider planning
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -175,7 +357,7 @@ const PoliticalApplicationsList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Candidatures "Je me lance en politique"</h2>
         <Button onClick={loadApplications} variant="outline">
@@ -183,183 +365,52 @@ const PoliticalApplicationsList = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {applications.map((app) => (
-          <Card key={app.id}>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{app.full_name}</CardTitle>
-                  <CardDescription>{app.email} • {app.city_country}</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(app.status)}
-                  {app.schedule_validated && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700">
-                      Planning validé
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-gray-600">Profil professionnel</p>
-                  <p className="font-medium">{app.professional_profile}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Sujet prioritaire</p>
-                  <p className="font-medium">{app.preferred_topic}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Format préféré</p>
-                  <p className="font-medium">{app.format_preference}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-2 flex-wrap">
-                <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedApp(app)}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Voir détails
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Détails de la candidature - {selectedApp?.full_name}</DialogTitle>
-                    </DialogHeader>
-                    {selectedApp && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <h4 className="font-semibold mb-2">Informations personnelles</h4>
-                            <div className="space-y-2 text-sm">
-                              <p><strong>Nom:</strong> {selectedApp.full_name}</p>
-                              <p><strong>Email:</strong> {selectedApp.email}</p>
-                              <p><strong>Téléphone:</strong> {selectedApp.phone}</p>
-                              <p><strong>Ville/Pays:</strong> {selectedApp.city_country}</p>
-                              <p><strong>Genre:</strong> {selectedApp.gender}</p>
-                              <p><strong>Âge:</strong> {selectedApp.age_group}</p>
-                              <p><strong>Profil:</strong> {selectedApp.professional_profile}</p>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-semibold mb-2">Préférences</h4>
-                            <div className="space-y-2 text-sm">
-                              <p><strong>Sujet prioritaire:</strong> {selectedApp.preferred_topic}</p>
-                              <p><strong>Format:</strong> {selectedApp.format_preference}</p>
-                              <p><strong>Contact:</strong> {selectedApp.contact_preference}</p>
-                              <p><strong>Période de début:</strong> {selectedApp.start_period}</p>
-                              <p><strong>Paiement:</strong> {selectedApp.payment_option}</p>
-                              <p><strong>Méthode:</strong> {selectedApp.payment_method}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold mb-2">Qualités de leadership</h4>
-                          <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.leadership_qualities}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold mb-2">Transformation désirée</h4>
-                          <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.desired_transformation}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold mb-2">Motivation pour la collaboration</h4>
-                          <p className="text-sm bg-gray-50 p-3 rounded">{selectedApp.why_collaboration}</p>
-                        </div>
-
-                        {selectedApp.political_situation && selectedApp.political_situation.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Situation politique</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedApp.political_situation.map((situation, index) => (
-                                <Badge key={index} variant="outline">{situation}</Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedApp.admin_response && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Réponse administrateur</h4>
-                            <p className="text-sm bg-blue-50 p-3 rounded">{selectedApp.admin_response}</p>
-                          </div>
-                        )}
-
-                        {selectedApp.payment_link && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Lien de paiement</h4>
-                            <a 
-                              href={selectedApp.payment_link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {selectedApp.payment_link}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => openResponseDialog(app)}
-                >
-                  <Send className="w-4 h-4 mr-1" />
-                  Répondre
-                </Button>
-
-                {app.status === 'pending' && (
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => handleApprove(app.id)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Approuver & Planifier
-                  </Button>
-                )}
-
-                {(app.status === 'approved' || app.status === 'schedule_proposed') && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open(`/admin/political-launch-schedule/${app.id}`, '_blank')}
-                  >
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Planning
-                  </Button>
-                )}
-
-                {app.proposed_schedule && !app.schedule_validated && (
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => validateSchedule(app.id)}
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Valider planning
-                  </Button>
-                )}
-              </div>
+      {/* Section Candidatures en attente */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            <Clock className="h-5 w-5 text-orange-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800">
+            Candidatures en attente ({pendingApplications.length})
+          </h3>
+        </div>
+        
+        {pendingApplications.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center text-gray-500">
+              Aucune candidature en attente
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          <div className="grid gap-4">
+            {pendingApplications.map(renderApplicationCard)}
+          </div>
+        )}
+      </div>
+
+      {/* Section Candidatures validées */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800">
+            Candidatures validées ({validatedApplications.length})
+          </h3>
+        </div>
+        
+        {validatedApplications.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center text-gray-500">
+              Aucune candidature validée
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {validatedApplications.map(renderApplicationCard)}
+          </div>
+        )}
       </div>
 
       {/* Dialog de réponse */}

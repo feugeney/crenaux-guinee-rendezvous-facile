@@ -1,53 +1,61 @@
+
+export interface Booking {
+  id: string;
+  user_id?: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  topic: string;
+  message?: string;
+  payment_status: string;
+  payment_method?: string;
+  payment_link?: string;
+  stripe_session_id?: string;
+  amount?: number;
+  is_priority?: boolean;
+  created_at: string;
+  updated_at: string;
+  customer_name?: string;
+  email?: string;
+}
+
+export interface UserData {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  profession?: string;
+  age?: number;
+  address?: string;
+  isPriority?: boolean;
+}
+
+export interface BookingWithUserData {
+  booking: Booking;
+  userData?: UserData;
+}
+
 export interface TimeSlot {
   id: string;
   day_of_week: number;
-  startTime: string;
-  endTime: string;
+  start_time: string;
+  end_time: string;
   available: boolean;
   is_recurring?: boolean;
-  specific_date?: string | null;
-  day?: string;
+  specific_date?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface DaySchedule {
-  date: string; // ISO format (YYYY-MM-DD)
-  slots: TimeSlot[];
-}
-
-export interface BookingData {
-  id?: string;
-  firstName: string;
-  lastName: string;
-  fullName?: string; // Adding this for backward compatibility
-  email: string;
-  phone: string;
-  date: string;
-  timeSlot: TimeSlot;
-  topic: string;
-  notes?: string;
-  message?: string; // Adding for backward compatibility
-  paymentStatus: 'pending' | 'completed' | 'failed';
-  paymentMethod?: PaymentMethod;
-  isPriority?: boolean; // Explicitly add isPriority flag to BookingData
-}
-
-export interface Coach {
+export interface Offer {
   id: string;
-  name: string;
-  speciality: string;
-  bio: string;
-  imageUrl: string;
-}
-
-export type PaymentMethod = 'visa' | 'mobile_money' | 'stripe';
-
-// Adding an interface for the Profile type to ensure consistency
-export interface Profile {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string | null;
+  title: string;
+  description?: string;
+  price: number;
+  category?: string;
+  image_url?: string;
+  featured?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -1,10 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import frLocale from '@fullcalendar/core/locales/fr';
+import frLocale from '@fullcalendar/core/locales/fr.js';
 import { TimeSlot } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -34,23 +33,24 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateSubmit = async (timeSlotData: TimeSlot) => {
-    // Ensure specific_date is correctly formatted if coming from a Date object
+    const isDateObj = Object.prototype.toString.call(timeSlotData.specific_date) === '[object Date]';
     const dataToSubmit = {
       ...timeSlotData,
-      specific_date: timeSlotData.specific_date instanceof Date 
-        ? timeSlotData.specific_date.toISOString().split('T')[0] 
-        : timeSlotData.specific_date
+      specific_date: isDateObj
+        ? (timeSlotData.specific_date as Date).toISOString().split('T')[0]
+        : timeSlotData.specific_date,
     };
     await onCreate(dataToSubmit);
     setIsCreateDialogOpen(false);
   };
 
   const handleEditSubmit = async (timeSlotData: TimeSlot) => {
-     const dataToSubmit = {
+    const isDateObj = Object.prototype.toString.call(timeSlotData.specific_date) === '[object Date]';
+    const dataToSubmit = {
       ...timeSlotData,
-      specific_date: timeSlotData.specific_date instanceof Date 
-        ? timeSlotData.specific_date.toISOString().split('T')[0] 
-        : timeSlotData.specific_date
+      specific_date: isDateObj
+        ? (timeSlotData.specific_date as Date).toISOString().split('T')[0]
+        : timeSlotData.specific_date,
     };
     await onEdit(dataToSubmit);
     setIsEditDialogOpen(false);
@@ -251,4 +251,3 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 };
 
 export default TimeSlotCalendar;
-

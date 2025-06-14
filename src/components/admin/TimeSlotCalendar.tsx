@@ -19,6 +19,24 @@ interface TimeSlotCalendarProps {
   loading?: boolean;
 }
 
+// Helper function to safely format the date value as YYYY-MM-DD string
+function toYMD(dateVal: string | Date | null | undefined): string | null {
+  if (!dateVal) return null;
+  if (typeof dateVal === 'string') {
+    // If already YYYY-MM-DD, return as is; else try to parse to Date and format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return dateVal;
+    const parsed = new Date(dateVal);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+    return dateVal; // fallback, but should not happen if inputs are correct
+  }
+  if (dateVal instanceof Date) {
+    return dateVal.toISOString().split('T')[0];
+  }
+  return null;
+}
+
 const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   timeSlots,
   onEdit,
@@ -33,14 +51,7 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateSubmit = async (timeSlotData: TimeSlot) => {
-    let formattedDate: string | null = null;
-    if (timeSlotData.specific_date) {
-      if (typeof timeSlotData.specific_date === "string") {
-        formattedDate = timeSlotData.specific_date;
-      } else if (timeSlotData.specific_date instanceof Date) {
-        formattedDate = timeSlotData.specific_date.toISOString().split('T')[0];
-      }
-    }
+    const formattedDate = toYMD(timeSlotData.specific_date);
 
     const dataToSubmit = {
       ...timeSlotData,
@@ -51,14 +62,7 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   };
 
   const handleEditSubmit = async (timeSlotData: TimeSlot) => {
-    let formattedDate: string | null = null;
-    if (timeSlotData.specific_date) {
-      if (typeof timeSlotData.specific_date === "string") {
-        formattedDate = timeSlotData.specific_date;
-      } else if (timeSlotData.specific_date instanceof Date) {
-        formattedDate = timeSlotData.specific_date.toISOString().split('T')[0];
-      }
-    }
+    const formattedDate = toYMD(timeSlotData.specific_date);
 
     const dataToSubmit = {
       ...timeSlotData,

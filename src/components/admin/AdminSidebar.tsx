@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -91,12 +92,14 @@ export const AdminSidebar = () => {
     <div className="fixed left-0 top-0 w-64 bg-white border-r border-gray-200 h-screen shadow-lg z-50">
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <Crown className="h-6 w-6 text-white" />
-          </div>
+          <img 
+            src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
+            alt="Domani Doré Logo" 
+            className="h-10 w-auto" 
+          />
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Dom Consulting</h2>
-            <p className="text-sm text-gray-500">Administration</p>
+            <h2 className="text-lg font-bold text-gray-900">Administration</h2>
+            <p className="text-sm text-gray-500">Dom Consulting</p>
           </div>
         </div>
 

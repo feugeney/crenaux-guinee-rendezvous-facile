@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Crown, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 export const AdminHorizontalNav = () => {
   const navigate = useNavigate();
@@ -68,9 +68,11 @@ export const AdminHorizontalNav = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-1">
             <div className="flex items-center space-x-3 mr-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-800 via-gray-800 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                <Crown className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
+                alt="Domani Doré Logo" 
+                className="h-10 w-auto" 
+              />
               <div>
                 <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-gray-700 bg-clip-text text-transparent">
                   Dom Consulting

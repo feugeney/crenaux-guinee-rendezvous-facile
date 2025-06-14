@@ -1,63 +1,92 @@
+import { Offer } from '@/types';
 
-import { Coach, DaySchedule, TimeSlot } from "@/types";
-import { addDays, format } from "date-fns";
-
-// Generate sample schedule data for 14 days
-export const generateScheduleData = (): DaySchedule[] => {
-  const scheduleData: DaySchedule[] = [];
-  const today = new Date();
-
-  for (let i = 0; i < 14; i++) {
-    const currentDate = addDays(today, i);
-    const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const formattedDate = format(currentDate, 'yyyy-MM-dd');
-    
-    // Generate 3-5 slots per day with varying availability
-    const numberOfSlots = Math.floor(Math.random() * 3) + 3;
-    const slots: TimeSlot[] = [];
-    
-    for (let j = 0; j < numberOfSlots; j++) {
-      const startHour = 9 + Math.floor(Math.random() * 8); // Between 9 AM and 5 PM
-      const startTime = `${startHour.toString().padStart(2, '0')}:00`;
-      const endTime = `${(startHour + 1).toString().padStart(2, '0')}:00`;
-      
-      slots.push({
-        id: `slot-${formattedDate}-${j}`,
-        day_of_week: dayOfWeek,
-        startTime,
-        endTime,
-        available: Math.random() > 0.3, // 70% chance of being available
-      });
-    }
-    
-    scheduleData.push({
-      date: formattedDate,
-      slots,
-    });
+export const coaches = [
+  {
+    name: "Domani Doré",
+    speciality: "Coaching politique et leadership",
+    imageUrl: "/lovable-uploads/bf4a0354-13be-43ba-98a9-a4dbd932fd80.png"
   }
-  
-  return scheduleData;
-};
+];
 
-// Coach data
-export const coachData: Coach = {
-  id: "coach-1",
-  name: "Domani Doré",
-  speciality: "Coaching Politique et Professionnel",
-  bio: "Conseillère expérimentée avec plus de 10 ans d'expérience dans le coaching politique et le développement professionnel.",
-  imageUrl: "/lovable-uploads/64df67e3-2852-4399-878d-03cb4e455f55.png",
-};
+export const scheduleData = [
+  {
+    date: "2024-06-14",
+    slots: [
+      {
+        id: "1",
+        day_of_week: 5,
+        start_time: "09:00",
+        end_time: "10:00",
+        available: true,
+        is_recurring: true,
+        created_at: "",
+        updated_at: ""
+      }
+    ]
+  }
+];
 
-// Coaching topics array
-export const coachingTopics: string[] = [
-  "Développement de leadership",
-  "Communication politique",
-  "Stratégie de campagne",
-  "Prise de parole en public",
-  "Gestion d'image",
-  "Développement de carrière",
-  "Réseautage professionnel",
-  "Résolution de conflits",
-  "Préparation d'interview",
-  "Coaching de transition",
+export const offerCategories = [
+  'Coaching politique',
+  'Leadership',
+  'Formation',
+  'Consultation stratégique'
+];
+
+export const mockOffers: Offer[] = [
+  {
+    id: '1',
+    title: 'Consultation stratégique personnalisée',
+    description: 'Une séance de consultation individuelle pour définir votre stratégie politique et vos objectifs de carrière.',
+    price: 150,
+    category: 'Consultation stratégique',
+    image_url: '/lovable-uploads/4f321e46-6996-4c12-ba28-4f2fa751dac9.png',
+    featured: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Atelier de leadership pour femmes',
+    description: 'Un atelier intensif pour développer vos compétences en leadership et atteindre vos objectifs professionnels.',
+    price: 250,
+    category: 'Leadership',
+    image_url: '/lovable-uploads/64954197-6949-4191-845a-5d919889019f.png',
+    featured: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    title: 'Formation en communication politique',
+    description: 'Apprenez à maîtriser l\'art de la communication politique et à convaincre votre public.',
+    price: 100,
+    category: 'Formation',
+    image_url: '/lovable-uploads/64954197-6949-4191-845a-5d919889019f.png',
+    featured: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '4',
+    title: 'Coaching personnalisé pour élections',
+    description: 'Un accompagnement sur mesure pour préparer votre campagne électorale et maximiser vos chances de succès.',
+    price: 300,
+    category: 'Coaching politique',
+    image_url: '/lovable-uploads/4f321e46-6996-4c12-ba28-4f2fa751dac9.png',
+    featured: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '5',
+    title: 'Séminaire "Femmes et Pouvoir"',
+    description: 'Un séminaire inspirant pour les femmes qui souhaitent prendre leur place dans les sphères de décision.',
+    price: 200,
+    category: 'Leadership',
+    image_url: '/lovable-uploads/64954197-6949-4191-845a-5d919889019f.png',
+    featured: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
 ];

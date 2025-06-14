@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { BookingData } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { TimeSlot } from '@/types';
+import PaymentOptions from '@/components/PaymentOptions';
+import BookingSummary from '@/components/booking/BookingSummary';
+import BookingHeader from '@/components/booking/BookingHeader';
 
 const Payment = () => {
   const location = useLocation();
@@ -13,12 +12,31 @@ const Payment = () => {
   const { formData } = location.state || {};
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'visa' | 'mobile_money' | 'stripe'>('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [timeSlot, setTimeSlot] = useState<TimeSlot | null>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    
+    if (params.get('timeSlot')) {
+      const timeSlotData = JSON.parse(decodeURIComponent(params.get('timeSlot')!));
+      const reconstructedTimeSlot: TimeSlot = {
+        id: timeSlotData.id,
+        day_of_week: timeSlotData.day_of_week,
+        start_time: timeSlotData.start_time,
+        end_time: timeSlotData.end_time,
+        available: timeSlotData.available,
+        is_recurring: timeSlotData.is_recurring,
+        specific_date: timeSlotData.specific_date,
+        created_at: timeSlotData.created_at || "",
+        updated_at: timeSlotData.updated_at || ""
+      };
+      setTimeSlot(reconstructedTimeSlot);
+    }
+
     if (!formData) {
       navigate("/strategic-consultation");
     }
-  }, [formData, navigate]);
+  }, [formData, navigate, location]);
 
   if (!formData) {
     return null;

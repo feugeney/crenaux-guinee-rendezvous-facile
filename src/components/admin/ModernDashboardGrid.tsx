@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Calendar, 
   Package, 
   Bell, 
   Settings, 
@@ -14,9 +13,9 @@ import {
   CheckCircle,
   MessageSquare,
   BarChart3,
-  ArrowRight
+  ArrowRight,
+  Clock
 } from 'lucide-react';
-import BookingsCalendar from './BookingsCalendar';
 import RecentActivity from './RecentActivity';
 
 const ModernDashboardGrid = () => {
@@ -26,7 +25,7 @@ const ModernDashboardGrid = () => {
     {
       title: 'Créneaux horaires',
       description: 'Gérer les disponibilités',
-      icon: <Calendar className="h-5 w-5" />,
+      icon: <Clock className="h-5 w-5" />,
       action: () => navigate('/admin/time-slots'),
       color: 'from-blue-500 to-blue-600',
       hoverColor: 'hover:from-blue-600 hover:to-blue-700'
@@ -106,28 +105,15 @@ const ModernDashboardGrid = () => {
         </CardContent>
       </Card>
 
-      {/* Grille principale */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Calendrier principal */}
-        <div className="lg:col-span-2">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                <span>Calendrier des rendez-vous</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BookingsCalendar />
-            </CardContent>
-          </Card>
-        </div>
-
+      {/* Grille principale sans calendrier */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Activité récente */}
         <div className="space-y-6">
           <RecentActivity />
-          
-          {/* Liens rapides */}
+        </div>
+
+        {/* Liens rapides */}
+        <div className="space-y-6">
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">

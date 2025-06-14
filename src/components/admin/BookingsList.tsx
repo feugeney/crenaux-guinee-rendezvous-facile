@@ -57,6 +57,8 @@ interface Booking {
   formData?: any; // Using 'any' since Supabase can return different types
   amount?: number;
   updated_at: string;
+  customer_name?: string;
+  email?: string;
 }
 
 interface BookingsListProps {
@@ -381,7 +383,7 @@ const BookingsList = ({ priorityOnly = false, limit }: BookingsListProps) => {
                   <tbody>
                     <tr className="divide-x divide-gray-200">
                       <th className="p-2 text-left font-medium text-gray-500">Nom</th>
-                      <td className="p-2">{selectedBooking.userData?.first_name || selectedBooking.booking?.customer_name || <span className="text-gray-400">—</span>} {selectedBooking.userData?.last_name || ""}</td>
+                      <td className="p-2">{selectedBooking.userData?.first_name || selectedBooking.userData?.fullName || selectedBooking.userData?.firstName || <span className="text-gray-400">—</span>} {selectedBooking.userData?.last_name || selectedBooking.userData?.lastName || ""}</td>
                     </tr>
                     <tr className="divide-x divide-gray-200">
                       <th className="p-2 text-left font-medium text-gray-500">Email</th>

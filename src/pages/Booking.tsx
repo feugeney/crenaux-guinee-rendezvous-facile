@@ -7,6 +7,7 @@ import RegularBookingForm from '@/components/booking/RegularBookingForm';
 import PriorityBookingForm from '@/components/booking/PriorityBookingForm';
 import LoadingIndicator from '@/components/booking/LoadingIndicator';
 import { scheduleData } from '@/lib/data';
+import { format, addDays } from 'date-fns';
 
 const Booking = () => {
   const location = useLocation();
@@ -20,6 +21,11 @@ const Booking = () => {
   const [isRegularBooking, setIsRegularBooking] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [showCalendar, setShowCalendar] = useState(true);
+
+  // Priority booking form state
+  const [customDate, setCustomDate] = useState<string>('');
+  const [customTime, setCustomTime] = useState<string>('');
+  const [customReason, setCustomReason] = useState<string>('');
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -81,6 +87,20 @@ const Booking = () => {
     }
   };
 
+  const handlePriorityContinue = () => {
+    if (customDate && customTime && customReason) {
+      // Handle priority booking submission
+      navigate('/time-selection', {
+        state: {
+          selectedDate: customDate,
+          customTime,
+          customReason,
+          isPriority: true
+        }
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
       <h1 className="text-2xl font-bold mb-4">Réserver une consultation</h1>
@@ -91,7 +111,15 @@ const Booking = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             {isPriority ? (
-              <PriorityBookingForm />
+              <PriorityBookingForm
+                customDate={customDate}
+                setCustomDate={setCustomDate}
+                customTime={customTime}
+                setCustomTime={setCustomTime}
+                customReason={customReason}
+                setCustomReason={setCustomReason}
+                handleContinue={handlePriorityContinue}
+              />
             ) : (
               <RegularBookingForm
                 scheduleData={scheduleData}

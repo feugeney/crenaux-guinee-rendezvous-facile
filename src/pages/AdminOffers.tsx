@@ -1,29 +1,30 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
 import OffersPageHeader from '@/components/admin/OffersPageHeader';
 import OffersContent from '@/components/admin/OffersContent';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, TrendingUp, Eye, Plus } from 'lucide-react';
+import OfferDialogs from '@/components/admin/OfferDialogs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Package, TrendingUp, Eye } from 'lucide-react';
+import { useOffersManagement } from '@/hooks/useOffersManagement';
 
 const AdminOffers = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [offers, setOffers] = useState([]);
-
-  const handleCreateOffer = () => {
-    console.log('Create offer clicked');
-    // TODO: Implémenter la création d'offre
-  };
-
-  const handleEditOffer = (offer: any) => {
-    console.log('Edit offer:', offer);
-    // TODO: Implémenter l'édition d'offre
-  };
-
-  const handleDeleteOffer = (offer: any) => {
-    console.log('Delete offer:', offer);
-    // TODO: Implémenter la suppression d'offre
-  };
+  const {
+    offers,
+    isLoading,
+    isSubmitting,
+    currentOffer,
+    isDialogOpen,
+    isDeleteDialogOpen,
+    setIsDialogOpen,
+    setIsDeleteDialogOpen,
+    handleCreateOffer,
+    handleEditOffer,
+    handleDeleteConfirm,
+    handleSaveOffer,
+    handleDeleteOffer,
+    handleOfferChange,
+  } = useOffersManagement();
 
   return (
     <AdminHorizontalLayout>
@@ -96,8 +97,21 @@ const AdminOffers = () => {
           isLoading={isLoading}
           offers={offers}
           onEdit={handleEditOffer}
-          onDelete={handleDeleteOffer}
+          onDelete={handleDeleteConfirm}
           onCreateOffer={handleCreateOffer}
+        />
+
+        {/* Dialogs pour créer/modifier/supprimer les offres */}
+        <OfferDialogs
+          currentOffer={currentOffer}
+          isSubmitting={isSubmitting}
+          isDialogOpen={isDialogOpen}
+          isDeleteDialogOpen={isDeleteDialogOpen}
+          setIsDialogOpen={setIsDialogOpen}
+          setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+          onSave={handleSaveOffer}
+          onDelete={handleDeleteOffer}
+          onChange={handleOfferChange}
         />
       </div>
     </AdminHorizontalLayout>

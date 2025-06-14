@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import UpcomingBookings from './UpcomingBookings';
 import AdminBookingsMiniCalendar from './AdminBookingsMiniCalendar';
@@ -8,6 +7,13 @@ interface BookingCalendarDay {
   date: string;
 }
 
+// Booking row shape for what we select from supabase below
+type BookingRow = {
+  date: string;
+  status: string;
+  payment_status: string;
+};
+
 const BookingsCalendar = () => {
   // État pour stocker les dates de réservation à surligner
   const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
@@ -16,7 +22,7 @@ const BookingsCalendar = () => {
     // Charge les dates des réservations à venir (uniques, non annulées)
     const fetchBookingDates = async () => {
       const today = new Date().toISOString().split('T')[0];
-      // On ne récupère que les champs "date" pour optimiser
+      // On ne récupère que les champs "date", "status", "payment_status"
       const { data, error } = await supabase
         .from('bookings')
         .select('date, status, payment_status')
@@ -27,7 +33,7 @@ const BookingsCalendar = () => {
         return;
       }
       // Statut non annulé
-      const futureRdv = (data as BookingCalendarDay[] & { status?: string }[])
+      const futureRdv = (data as BookingRow[])
         .filter(x => x.status !== 'cancelled')
         .map(x => x.date);
 
@@ -52,4 +58,3 @@ const BookingsCalendar = () => {
 };
 
 export default BookingsCalendar;
-

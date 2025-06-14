@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
@@ -22,45 +21,54 @@ import AdminSettings from './pages/AdminSettings';
 import AdminStripeSettings from './pages/AdminStripeSettings';
 import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
 import AdminPoliticalLaunchSchedule from './pages/AdminPoliticalLaunchSchedule';
+import AdminPoliticalLaunchPending from './pages/AdminPoliticalLaunchPending';
+import AdminPoliticalLaunchValidated from './pages/AdminPoliticalLaunchValidated';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
+import { QueryClient } from 'react-query';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/time-selection" element={<TimeSelection />} />
-          <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-          <Route path="/booking-success" element={<BookingSuccess />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/subscription" element={<Subscription />} />
-          <Route path="/strategic-consultation" element={<StrategicConsultation />} />
-          <Route path="/political-launch" element={<PoliticalLaunchForm />} />
-          <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
-          
-          {/* Admin routes */}
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/bookings" element={<AdminBookings />} />
-          <Route path="/admin/time-slots" element={<AdminTimeSlots />} />
-          <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
-          <Route path="/admin/offers" element={<AdminOffers />} />
-          <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-          <Route path="/admin/notifications" element={<AdminNotifications />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/stripe-settings" element={<AdminStripeSettings />} />
-          <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
-          <Route path="/admin/political-launch-schedule/:id" element={<AdminPoliticalLaunchSchedule />} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-    </Router>
+    <QueryClient>
+      <BrowserRouter>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/time-selection" element={<TimeSelection />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+            <Route path="/booking-success" element={<BookingSuccess />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/strategic-consultation" element={<StrategicConsultation />} />
+            <Route path="/political-launch" element={<PoliticalLaunchForm />} />
+            <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/time-slots" element={<AdminTimeSlots />} />
+            <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
+            <Route path="/admin/offers" element={<AdminOffers />} />
+            <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+            <Route path="/admin/notifications" element={<AdminNotifications />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/stripe-settings" element={<AdminStripeSettings />} />
+            <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
+            <Route path="/admin/political-launch-schedule/:id" element={<AdminPoliticalLaunchSchedule />} />
+            <Route path="/admin/political-launch-pending" element={<AdminPoliticalLaunchPending />} />
+            <Route path="/admin/political-launch-validated" element={<AdminPoliticalLaunchValidated />} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </div>
+      </BrowserRouter>
+    </QueryClient>
   );
 }
 

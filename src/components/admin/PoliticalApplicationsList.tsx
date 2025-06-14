@@ -39,7 +39,15 @@ interface PoliticalApplication {
   created_at: string;
 }
 
-const PoliticalApplicationsList = () => {
+interface PoliticalApplicationsListProps {
+  showOnlyPending?: boolean;
+  showOnlyValidated?: boolean;
+}
+
+const PoliticalApplicationsList: React.FC<PoliticalApplicationsListProps> = ({ 
+  showOnlyPending = false, 
+  showOnlyValidated = false 
+}) => {
   const [applications, setApplications] = useState<PoliticalApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<PoliticalApplication | null>(null);
@@ -54,15 +62,24 @@ const PoliticalApplicationsList = () => {
 
   useEffect(() => {
     loadApplications();
-  }, []);
+  }, [showOnlyPending, showOnlyValidated]);
 
   const loadApplications = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('political_launch_applications')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Appliquer les filtres
+      if (showOnlyPending) {
+        query = query.eq('status', 'pending');
+      } else if (showOnlyValidated) {
+        query = query.neq('status', 'pending').neq('status', 'rejected');
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setApplications(data || []);
@@ -164,12 +181,6 @@ const PoliticalApplicationsList = () => {
     // Rediriger directement vers la page de planification
     window.open(`/admin/political-launch-schedule/${applicationId}`, '_blank');
   };
-
-  // Séparer les candidatures
-  const pendingApplications = applications.filter(app => app.status === 'pending');
-  const validatedApplications = applications.filter(app => 
-    app.status !== 'pending' && app.status !== 'rejected'
-  );
 
   const renderApplicationCard = (app: PoliticalApplication) => (
     <Card key={app.id}>
@@ -356,62 +367,36 @@ const PoliticalApplicationsList = () => {
     );
   }
 
+  const getEmptyMessage = () => {
+    if (showOnlyPending) return "Aucune candidature en attente";
+    if (showOnlyValidated) return "Aucune candidature validée";
+    return "Aucune candidature trouvée";
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Candidatures "Je me lance en politique"</h2>
+        <h2 className="text-2xl font-bold">
+          {showOnlyPending && "Candidatures en attente"}
+          {showOnlyValidated && "Candidatures validées"}
+          {!showOnlyPending && !showOnlyValidated && "Toutes les candidatures"}
+        </h2>
         <Button onClick={loadApplications} variant="outline">
           Actualiser
         </Button>
       </div>
 
-      {/* Section Candidatures en attente */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Clock className="h-5 w-5 text-orange-600" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800">
-            Candidatures en attente ({pendingApplications.length})
-          </h3>
+      {applications.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-center text-gray-500">
+            {getEmptyMessage()}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {applications.map(renderApplicationCard)}
         </div>
-        
-        {pendingApplications.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-gray-500">
-              Aucune candidature en attente
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {pendingApplications.map(renderApplicationCard)}
-          </div>
-        )}
-      </div>
-
-      {/* Section Candidatures validées */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800">
-            Candidatures validées ({validatedApplications.length})
-          </h3>
-        </div>
-        
-        {validatedApplications.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-gray-500">
-              Aucune candidature validée
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {validatedApplications.map(renderApplicationCard)}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Dialog de réponse */}
       <Dialog open={isResponseOpen} onOpenChange={setIsResponseOpen}>

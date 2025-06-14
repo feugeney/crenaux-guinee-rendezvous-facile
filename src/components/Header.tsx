@@ -39,11 +39,11 @@ const Header = () => {
       <div className="container flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/e6025925-4f10-4a38-8780-a74241fe823d.png" 
-            alt="Logo" 
-            className="h-8 w-auto" 
+            src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
+            alt="Domani Doré Logo" 
+            className="h-12 w-auto" 
           />
-          <span className="ml-2 text-xs text-gray-600">
+          <span className="ml-3 text-xs text-gray-600">
             Ici, commence ton ascension politique et professionnelle
           </span>
         </Link>
@@ -69,9 +69,9 @@ const Header = () => {
                 <div className="py-6">
                   <Link to="/" className="flex items-center mb-6">
                     <img 
-                      src="/lovable-uploads/e6025925-4f10-4a38-8780-a74241fe823d.png" 
-                      alt="Logo"
-                      className="h-10 w-auto"
+                      src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
+                      alt="Domani Doré Logo"
+                      className="h-12 w-auto"
                     />
                   </Link>
                   <nav className="flex flex-col gap-4">

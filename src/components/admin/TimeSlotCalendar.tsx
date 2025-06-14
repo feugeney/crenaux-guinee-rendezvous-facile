@@ -33,24 +33,36 @@ const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateSubmit = async (timeSlotData: TimeSlot) => {
-    const isDateObj = Object.prototype.toString.call(timeSlotData.specific_date) === '[object Date]';
+    let formattedDate: string | null = null;
+    if (timeSlotData.specific_date) {
+      if (typeof timeSlotData.specific_date === "string") {
+        formattedDate = timeSlotData.specific_date;
+      } else if (timeSlotData.specific_date instanceof Date) {
+        formattedDate = timeSlotData.specific_date.toISOString().split('T')[0];
+      }
+    }
+
     const dataToSubmit = {
       ...timeSlotData,
-      specific_date: isDateObj
-        ? (timeSlotData.specific_date as Date).toISOString().split('T')[0]
-        : timeSlotData.specific_date,
+      specific_date: formattedDate,
     };
     await onCreate(dataToSubmit);
     setIsCreateDialogOpen(false);
   };
 
   const handleEditSubmit = async (timeSlotData: TimeSlot) => {
-    const isDateObj = Object.prototype.toString.call(timeSlotData.specific_date) === '[object Date]';
+    let formattedDate: string | null = null;
+    if (timeSlotData.specific_date) {
+      if (typeof timeSlotData.specific_date === "string") {
+        formattedDate = timeSlotData.specific_date;
+      } else if (timeSlotData.specific_date instanceof Date) {
+        formattedDate = timeSlotData.specific_date.toISOString().split('T')[0];
+      }
+    }
+
     const dataToSubmit = {
       ...timeSlotData,
-      specific_date: isDateObj
-        ? (timeSlotData.specific_date as Date).toISOString().split('T')[0]
-        : timeSlotData.specific_date,
+      specific_date: formattedDate,
     };
     await onEdit(dataToSubmit);
     setIsEditDialogOpen(false);

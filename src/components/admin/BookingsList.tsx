@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -381,16 +380,24 @@ const BookingsList = ({ priorityOnly = false, limit }: BookingsListProps) => {
                         <dt className="font-medium text-gray-500">Nom</dt>
                         <dd className="col-span-2">{selectedBooking.userData?.first_name} {selectedBooking.userData?.last_name}</dd>
                       </div>
-                      
+
                       <div className="grid grid-cols-3">
                         <dt className="font-medium text-gray-500">Email</dt>
                         <dd className="col-span-2">{selectedBooking.userData?.email}</dd>
                       </div>
-                      
+
                       <div className="grid grid-cols-3">
                         <dt className="font-medium text-gray-500">Téléphone</dt>
                         <dd className="col-span-2">{selectedBooking.userData?.phone || selectedBooking.userData?.countryCode + " " + selectedBooking.userData?.phone || "—"}</dd>
                       </div>
+                      
+                      {/* Ajout explicite de l'âge */}
+                      {typeof selectedBooking.userData?.age !== "undefined" && selectedBooking.userData?.age !== null && (
+                        <div className="grid grid-cols-3">
+                          <dt className="font-medium text-gray-500">Âge</dt>
+                          <dd className="col-span-2">{selectedBooking.userData.age}</dd>
+                        </div>
+                      )}
 
                       {selectedBooking.userData?.whatsapp && (
                         <div className="grid grid-cols-3">

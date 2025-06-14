@@ -606,6 +606,86 @@ const BookingsList = ({ priorityOnly = false, limit }: BookingsListProps) => {
                     </dl>
                   </div>
                 )}
+
+                {/* NEW: Toutes les informations fournies côté réservation */}
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="text-lg font-medium border-b pb-2">
+                    Tous les champs de la réservation (booking)
+                  </h3>
+                  <dl className="space-y-4 grid grid-cols-1">
+                    {Object.entries(selectedBooking.booking || {}).map(([key, value]) => {
+                      // On saute les champs qui sont déjà affichés dans les sections principales
+                      const skippedKeys = [
+                        "profiles", "formData", // affiché ailleurs
+                        "user_id", // interne
+                        "__supabase_realtime_auth_token"
+                      ];
+                      if (skippedKeys.includes(key)) return null;
+
+                      // N'affiche pas les données nulles/vides
+                      if (
+                        typeof value === "undefined" ||
+                        value === null ||
+                        value === ""
+                      ) {
+                        return null;
+                      }
+
+                      // Si c'est un objet (hors date JS), affichage JSON
+                      if (
+                        typeof value === "object" &&
+                        value !== null &&
+                        Object.prototype.toString.call(value) !== "[object Date]"
+                      ) {
+                        return (
+                          <div key={key} className="border-l-2 pl-3 py-1 border-gray-200">
+                            <dt className="font-medium text-gray-700 capitalize">
+                              {key.replace(/([A-Z])/g, " $1").trim()}
+                            </dt>
+                            <dd className="mt-1 text-gray-600">
+                              <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-2 rounded-md">
+                                {JSON.stringify(value, null, 2)}
+                              </pre>
+                            </dd>
+                          </div>
+                        );
+                      }
+
+                      // Pour special cases date/time
+                      if (
+                        key === "date" ||
+                        key === "created_at" ||
+                        key === "updated_at"
+                      ) {
+                        try {
+                          return (
+                            <div key={key} className="border-l-2 pl-3 py-1 border-gray-200">
+                              <dt className="font-medium text-gray-700 capitalize">
+                                {key.replace(/([A-Z])/g, " $1").trim()}
+                              </dt>
+                              <dd className="mt-1 text-gray-600">
+                                {format(new Date(value as string), key === "date" ? "PPP" : "dd/MM/yyyy HH:mm", { locale: fr })}
+                              </dd>
+                            </div>
+                          );
+                        } catch {
+                          // en cas de souci de conversion
+                          return null;
+                        }
+                      }
+
+                      // Affichage classique champ texte / nombre
+                      return (
+                        <div key={key} className="border-l-2 pl-3 py-1 border-gray-200">
+                          <dt className="font-medium text-gray-700 capitalize">
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </dt>
+                          <dd className="mt-1 text-gray-600">{value?.toString()}</dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </div>
               </div>
             </ScrollArea>
           )}

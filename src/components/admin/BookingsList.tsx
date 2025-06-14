@@ -312,35 +312,47 @@ const BookingsList = ({ priorityOnly = false, limit }: BookingsListProps) => {
               <TableCell>{booking.topic}</TableCell>
               <TableCell>{getStatusBadge(booking.payment_status, booking.is_priority)}</TableCell>
               <TableCell>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 hover:bg-blue-50"
-                    onClick={() => viewBookingDetails(booking)}
-                  >
-                    <Info className="h-4 w-4 mr-1" />
-                    Détails
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 hover:bg-green-50"
-                    onClick={() => updateBookingStatus(booking.id, 'completed')}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Confirmer
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 hover:bg-red-50"
-                    onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                  >
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Annuler
-                  </Button>
-                </div>
+                {booking.payment_status === "pending" ? (
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 hover:bg-blue-50"
+                      onClick={() => viewBookingDetails(booking)}
+                    >
+                      <Info className="h-4 w-4 mr-1" />
+                      Détails
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 hover:bg-green-50"
+                      onClick={() => updateBookingStatus(booking.id, 'completed')}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Confirmer
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 hover:bg-red-50"
+                      onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Annuler
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    {booking.payment_status === "completed" ? (
+                      <Badge className="bg-green-100 text-green-800 border-green-200">Confirmé</Badge>
+                    ) : booking.payment_status === "cancelled" ? (
+                      <Badge className="bg-red-100 text-red-800 border-red-200">Annulé</Badge>
+                    ) : (
+                      <span>{getStatusBadge(booking.payment_status, booking.is_priority)}</span>
+                    )}
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -23,7 +23,11 @@ interface UpcomingBooking {
   is_priority: boolean;
 }
 
-const UpcomingBookings = () => {
+interface UpcomingBookingsProps {
+  selectedDate?: string | null;
+}
+
+const UpcomingBookings: React.FC<UpcomingBookingsProps> = ({ selectedDate }) => {
   const [bookings, setBookings] = useState<UpcomingBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
@@ -31,24 +35,28 @@ const UpcomingBookings = () => {
 
   useEffect(() => {
     fetchUpcomingBookings();
-  }, []);
+  }, [selectedDate]);
 
   const fetchUpcomingBookings = async () => {
     try {
       setIsLoading(true);
-      
       const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
+
+      let query = supabase
         .from('bookings')
         .select('*')
         .gte('date', today)
         .in('payment_status', ['completed', 'pending'])
         .order('date', { ascending: true })
         .order('start_time', { ascending: true });
-      
+
+      if (selectedDate) {
+        query = query.eq('date', selectedDate);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
-      
+
       setBookings(data as UpcomingBooking[]);
     } catch (error: any) {
       console.error("Erreur lors du chargement des réservations:", error);

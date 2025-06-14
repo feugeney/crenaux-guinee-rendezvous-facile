@@ -1,13 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import UpcomingBookings from './UpcomingBookings';
 import AdminBookingsMiniCalendar from './AdminBookingsMiniCalendar';
 import { supabase } from '@/lib/supabase';
 
-interface BookingCalendarDay {
-  date: string;
-}
-
-// Booking row shape for what we select from supabase below
 type BookingRow = {
   date: string;
   status: string;
@@ -15,14 +11,15 @@ type BookingRow = {
 };
 
 const BookingsCalendar = () => {
-  // État pour stocker les dates de réservation à surligner
+  // Dates de réservation à surligner
   const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
+  // Date sélectionnée (ISO string)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     // Charge les dates des réservations à venir (uniques, non annulées)
     const fetchBookingDates = async () => {
       const today = new Date().toISOString().split('T')[0];
-      // On ne récupère que les champs "date", "status", "payment_status"
       const { data, error } = await supabase
         .from('bookings')
         .select('date, status, payment_status')
@@ -32,26 +29,34 @@ const BookingsCalendar = () => {
         setHighlightedDates([]);
         return;
       }
-      // Statut non annulé
       const futureRdv = (data as BookingRow[])
         .filter(x => x.status !== 'cancelled')
         .map(x => x.date);
 
-      // Unicité
       setHighlightedDates(Array.from(new Set(futureRdv)));
     };
 
     fetchBookingDates();
   }, []);
 
-  // Affiche deux colonnes : à gauche la liste, à droite le calendrier mini
+  // Mets à jour la date sélectionnée lors du choix sur le calendrier
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(prev =>
+      prev === date ? null : date // toggle: recliquer = déselectionner
+    );
+  };
+
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
-        <UpcomingBookings />
+        <UpcomingBookings selectedDate={selectedDate} />
       </div>
       <div>
-        <AdminBookingsMiniCalendar highlightDates={highlightedDates} />
+        <AdminBookingsMiniCalendar
+          highlightDates={highlightedDates}
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+        />
       </div>
     </div>
   );

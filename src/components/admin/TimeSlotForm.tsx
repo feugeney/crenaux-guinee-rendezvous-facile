@@ -36,11 +36,13 @@ const TimeSlotForm = ({
     defaultValues: formData || {
       id: "",
       day_of_week: 1, // Monday
-      startTime: "09:00", 
-      endTime: "10:00", 
+      start_time: "09:00", 
+      end_time: "10:00", 
       available: true,
       is_recurring: isPermanent,
-      specific_date: null
+      specific_date: "",
+      created_at: "",
+      updated_at: ""
     }
   });
 
@@ -106,26 +108,26 @@ const TimeSlotForm = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="startTime">Heure de début</Label>
+          <Label htmlFor="start_time">Heure de début</Label>
           <Input
-            id="startTime"
+            id="start_time"
             type="time"
-            {...register("startTime", { required: "L'heure de début est obligatoire" })}
+            {...register("start_time", { required: "L'heure de début est obligatoire" })}
           />
-          {formState.errors.startTime && (
-            <p className="text-red-500 text-sm">{formState.errors.startTime.message}</p>
+          {formState.errors.start_time && (
+            <p className="text-red-500 text-sm">{formState.errors.start_time.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endTime">Heure de fin</Label>
+          <Label htmlFor="end_time">Heure de fin</Label>
           <Input
-            id="endTime"
+            id="end_time"
             type="time"
-            {...register("endTime", { required: "L'heure de fin est obligatoire" })}
+            {...register("end_time", { required: "L'heure de fin est obligatoire" })}
           />
-          {formState.errors.endTime && (
-            <p className="text-red-500 text-sm">{formState.errors.endTime.message}</p>
+          {formState.errors.end_time && (
+            <p className="text-red-500 text-sm">{formState.errors.end_time.message}</p>
           )}
         </div>
       </div>

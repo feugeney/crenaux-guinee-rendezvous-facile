@@ -104,7 +104,7 @@ const ModernDashboardStats = () => {
     {
       title: "RDV cette semaine",
       value: stats?.week_bookings_count || 0,
-      icon: <Calendar className="h-6 w-6" />,
+      icon: <CalendarDays className="h-6 w-6" />,
       description: "Rendez-vous programmés",
       gradient: "from-purple-500 to-purple-600",
       bgGradient: "from-purple-50 to-purple-100",

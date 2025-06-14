@@ -12,8 +12,8 @@ import { Plus, Trash2 } from 'lucide-react';
 interface MultipleTimeSlotsData {
   date: string;
   slots: Array<{
-    startTime: string;
-    endTime: string;
+    start_time: string;
+    end_time: string;
     available: boolean;
   }>;
   is_recurring: boolean;
@@ -34,7 +34,7 @@ const MultipleTimeSlotsForm: React.FC<MultipleTimeSlotsFormProps> = ({
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       slots: [
-        { startTime: "09:00", endTime: "10:00", available: true }
+        { start_time: "09:00", end_time: "10:00", available: true }
       ],
       is_recurring: false
     }
@@ -52,7 +52,7 @@ const MultipleTimeSlotsForm: React.FC<MultipleTimeSlotsFormProps> = ({
   }, [creationType, setValue]);
 
   const addTimeSlot = () => {
-    append({ startTime: "09:00", endTime: "10:00", available: true });
+    append({ start_time: "09:00", end_time: "10:00", available: true });
   };
 
   const removeTimeSlot = (index: number) => {
@@ -65,11 +65,13 @@ const MultipleTimeSlotsForm: React.FC<MultipleTimeSlotsFormProps> = ({
     const timeSlots: TimeSlot[] = data.slots.map((slot, index) => ({
       id: `temp-${index}`,
       day_of_week: data.is_recurring ? new Date(data.date).getDay() : 0,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
       available: slot.available,
       is_recurring: data.is_recurring,
-      specific_date: data.date
+      specific_date: data.date,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }));
 
     await onSubmit(timeSlots);
@@ -138,33 +140,33 @@ const MultipleTimeSlotsForm: React.FC<MultipleTimeSlotsFormProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor={`slots.${index}.startTime`}>Heure de début</Label>
+                <Label htmlFor={`slots.${index}.start_time`}>Heure de début</Label>
                 <Input
-                  id={`slots.${index}.startTime`}
+                  id={`slots.${index}.start_time`}
                   type="time"
-                  {...register(`slots.${index}.startTime`, { 
+                  {...register(`slots.${index}.start_time`, { 
                     required: "L'heure de début est obligatoire" 
                   })}
                 />
-                {formState.errors.slots?.[index]?.startTime && (
+                {formState.errors.slots?.[index]?.start_time && (
                   <p className="text-red-500 text-sm">
-                    {formState.errors.slots[index]?.startTime?.message}
+                    {formState.errors.slots[index]?.start_time?.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor={`slots.${index}.endTime`}>Heure de fin</Label>
+                <Label htmlFor={`slots.${index}.end_time`}>Heure de fin</Label>
                 <Input
-                  id={`slots.${index}.endTime`}
+                  id={`slots.${index}.end_time`}
                   type="time"
-                  {...register(`slots.${index}.endTime`, { 
+                  {...register(`slots.${index}.end_time`, { 
                     required: "L'heure de fin est obligatoire" 
                   })}
                 />
-                {formState.errors.slots?.[index]?.endTime && (
+                {formState.errors.slots?.[index]?.end_time && (
                   <p className="text-red-500 text-sm">
-                    {formState.errors.slots[index]?.endTime?.message}
+                    {formState.errors.slots[index]?.end_time?.message}
                   </p>
                 )}
               </div>

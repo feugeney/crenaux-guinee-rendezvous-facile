@@ -6,13 +6,18 @@ import { TimeSlot } from "@/types";
 const mapToTimeSlot = (dbSlot: any): TimeSlot => {
   return {
     id: dbSlot.id,
-    day: getDayName(dbSlot.day_of_week),
+    day_of_week: dbSlot.day_of_week,
+    start_time: dbSlot.start_time,
+    end_time: dbSlot.end_time,
+    available: dbSlot.available,
+    is_recurring: dbSlot.is_recurring,
+    specific_date: dbSlot.specific_date,
+    created_at: dbSlot.created_at,
+    updated_at: dbSlot.updated_at,
+    // Legacy compatibility
     startTime: dbSlot.start_time,
     endTime: dbSlot.end_time,
-    available: dbSlot.available,
-    day_of_week: dbSlot.day_of_week,
-    is_recurring: dbSlot.is_recurring,
-    specific_date: dbSlot.specific_date
+    day: getDayName(dbSlot.day_of_week)
   };
 };
 
@@ -20,8 +25,8 @@ const mapToTimeSlot = (dbSlot: any): TimeSlot => {
 const mapToDbTimeSlot = (timeSlot: TimeSlot) => {
   return {
     day_of_week: timeSlot.day_of_week || 0,
-    start_time: timeSlot.startTime,
-    end_time: timeSlot.endTime,
+    start_time: timeSlot.start_time || timeSlot.startTime || '',
+    end_time: timeSlot.end_time || timeSlot.endTime || '',
     available: timeSlot.available,
     is_recurring: timeSlot.is_recurring !== undefined ? timeSlot.is_recurring : true,
     specific_date: timeSlot.specific_date || null

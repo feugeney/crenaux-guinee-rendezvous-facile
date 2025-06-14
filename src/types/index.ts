@@ -46,6 +46,10 @@ export interface TimeSlot {
   specific_date?: string;
   created_at: string;
   updated_at: string;
+  // Legacy properties for backward compatibility
+  startTime?: string;
+  endTime?: string;
+  day?: string;
 }
 
 export interface Offer {
@@ -59,3 +63,34 @@ export interface Offer {
   created_at: string;
   updated_at: string;
 }
+
+// Missing types that are used throughout the codebase
+export interface DaySchedule {
+  date: string;
+  slots: TimeSlot[];
+}
+
+export interface Coach {
+  name: string;
+  speciality: string;
+  imageUrl: string;
+}
+
+export interface BookingData {
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  date?: string;
+  timeSlot?: TimeSlot;
+  topic?: string;
+  message?: string;
+  notes?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  isPriority?: boolean;
+  reason?: string;
+}
+
+export type PaymentMethod = 'visa' | 'mobile_money' | 'stripe';

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -155,11 +156,11 @@ const TimeSlotList: React.FC<TimeSlotListProps> = ({
                   <TableCell>
                     {slot.is_recurring 
                       ? getDayName(slot.day_of_week) 
-                      : formatDate(slot.specific_date)
+                      : formatDate(slot.specific_date || '')
                     }
                   </TableCell>
-                  <TableCell>{slot.startTime}</TableCell>
-                  <TableCell>{slot.endTime}</TableCell>
+                  <TableCell>{slot.start_time}</TableCell>
+                  <TableCell>{slot.end_time}</TableCell>
                   <TableCell>{slot.available ? 'Oui' : 'Non'}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button 

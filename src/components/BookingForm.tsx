@@ -76,7 +76,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
           Date: <span className="font-medium">{format(parseISO(selectedDate), 'PPP', { locale: fr })}</span>
         </p>
         <p className="text-sm text-gray-600">
-          Heure: <span className="font-medium">{selectedTimeSlot.startTime} - {selectedTimeSlot.endTime}</span>
+          Heure: <span className="font-medium">{selectedTimeSlot.start_time} - {selectedTimeSlot.end_time}</span>
         </p>
       </div>
 

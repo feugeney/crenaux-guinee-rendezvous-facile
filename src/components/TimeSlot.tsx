@@ -16,6 +16,12 @@ const TimeSlot: React.FC<TimeSlotProps> = ({
   onSelect,
   showDay = false 
 }) => {
+  // Helper function to get day name
+  const getDayName = (dayOfWeek: number) => {
+    const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    return days[dayOfWeek] || "";
+  };
+
   return (
     <div 
       className={cn(
@@ -29,8 +35,8 @@ const TimeSlot: React.FC<TimeSlotProps> = ({
       )}
       onClick={() => slot.available && onSelect(slot)}
     >
-      {showDay && slot.day && <div className="text-xs text-gray-500 mb-1">{slot.day}</div>}
-      {slot.startTime} - {slot.endTime}
+      {showDay && <div className="text-xs text-gray-500 mb-1">{getDayName(slot.day_of_week)}</div>}
+      {slot.start_time} - {slot.end_time}
     </div>
   );
 };

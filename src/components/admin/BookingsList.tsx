@@ -371,6 +371,60 @@ const BookingsList = ({ priorityOnly = false, limit }: BookingsListProps) => {
           
           {selectedBooking && (
             <ScrollArea className="max-h-[60vh]">
+
+              {/* === Bloc résumé clair de la réservation === */}
+              <div className="overflow-x-auto mb-6">
+                <h3 className="text-base font-semibold mb-2 text-gray-700">
+                  Récapitulatif de la réservation
+                </h3>
+                <table className="min-w-full border border-gray-200 rounded-md bg-white">
+                  <tbody>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Nom</th>
+                      <td className="p-2">{selectedBooking.userData?.first_name || selectedBooking.booking?.customer_name || <span className="text-gray-400">—</span>} {selectedBooking.userData?.last_name || ""}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Email</th>
+                      <td className="p-2">{selectedBooking.userData?.email || selectedBooking.booking?.email || <span className="text-gray-400">—</span>}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Âge</th>
+                      <td className="p-2">{typeof selectedBooking.userData?.age !== "undefined" && selectedBooking.userData?.age !== null ? selectedBooking.userData.age : <span className="text-gray-400">—</span>}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Date</th>
+                      <td className="p-2">{selectedBooking.booking?.date ? format(new Date(selectedBooking.booking.date), 'PPP', { locale: fr }) : <span className="text-gray-400">—</span>}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Horaire</th>
+                      <td className="p-2">{selectedBooking.booking?.start_time?.substring(0, 5)} – {selectedBooking.booking?.end_time?.substring(0, 5)}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Type</th>
+                      <td className="p-2">{selectedBooking.booking?.topic || <span className="text-gray-400">—</span>}</td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Statut</th>
+                      <td className="p-2">
+                        {getStatusBadge(selectedBooking.booking?.payment_status || "", selectedBooking.booking?.is_priority || false)}
+                      </td>
+                    </tr>
+                    <tr className="divide-x divide-gray-200">
+                      <th className="p-2 text-left font-medium text-gray-500">Montant</th>
+                      <td className="p-2">
+                        {typeof selectedBooking.booking?.amount !== "undefined" && selectedBooking.booking?.amount !== null
+                          ? (Number(selectedBooking.booking?.amount).toLocaleString("fr-FR") + " $ USD")
+                          : selectedBooking.userData?.isPriority
+                              ? "350 $ USD"
+                              : "300 $ USD"
+                        }
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              {/* === Fin du bloc résumé === */}
+
               <div className="space-y-6 p-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">

@@ -15,6 +15,9 @@ import StrategicConsultation from './pages/StrategicConsultation';
 import Admin from './pages/Admin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminBookings from './pages/AdminBookings';
+import AdminBookingsPending from './pages/AdminBookingsPending';
+import AdminBookingsConfirmed from './pages/AdminBookingsConfirmed';
+import AdminBookingsRejected from './pages/AdminBookingsRejected';
 import AdminTimeSlots from './pages/AdminTimeSlots';
 import AdminPriorityRequests from './pages/AdminPriorityRequests';
 import AdminOffers from './pages/AdminOffers';
@@ -62,6 +65,9 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/bookings-pending" element={<AdminBookingsPending />} />
+            <Route path="/admin/bookings-confirmed" element={<AdminBookingsConfirmed />} />
+            <Route path="/admin/bookings-rejected" element={<AdminBookingsRejected />} />
             <Route path="/admin/time-slots" element={<AdminTimeSlots />} />
             <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
             <Route path="/admin/offers" element={<AdminOffers />} />

@@ -1,9 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TimeSlot } from '@/types';
+import { TimeSlot, BookingData } from '@/types';
 import PaymentOptions from '@/components/PaymentOptions';
 import BookingSummary from '@/components/booking/BookingSummary';
 import BookingHeader from '@/components/booking/BookingHeader';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabase';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const Payment = () => {
   const location = useLocation();
@@ -57,9 +62,12 @@ const Payment = () => {
         timeSlot: {
           id: formData.timeSlot?.id || '',
           day_of_week: formData.timeSlot?.day_of_week || 0,
-          startTime: formData.timeSlot?.startTime || '',
-          endTime: formData.timeSlot?.endTime || '',
-          available: formData.timeSlot?.available || true
+          start_time: formData.timeSlot?.start_time || '',
+          end_time: formData.timeSlot?.end_time || '',
+          available: formData.timeSlot?.available || true,
+          is_recurring: formData.timeSlot?.is_recurring || false,
+          created_at: formData.timeSlot?.created_at || '',
+          updated_at: formData.timeSlot?.updated_at || ''
         },
         topic: formData.topic || '',
         message: formData.message || '',

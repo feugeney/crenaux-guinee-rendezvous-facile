@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -5,6 +6,7 @@ import { TimeSlot } from '@/types';
 import RegularBookingForm from '@/components/booking/RegularBookingForm';
 import PriorityBookingForm from '@/components/booking/PriorityBookingForm';
 import LoadingIndicator from '@/components/booking/LoadingIndicator';
+import { scheduleData } from '@/lib/data';
 
 const Booking = () => {
   const location = useLocation();
@@ -17,6 +19,7 @@ const Booking = () => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isRegularBooking, setIsRegularBooking] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
+  const [showCalendar, setShowCalendar] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -67,23 +70,16 @@ const Booking = () => {
     setSelectedTimeSlot(slot);
   };
 
-  const mockScheduleData = [
-    {
-      date: "2024-06-14",
-      slots: [
-        {
-          id: "1",
-          day_of_week: 5,
-          start_time: "09:00",
-          end_time: "10:00",
-          available: true,
-          is_recurring: true,
-          created_at: "",
-          updated_at: ""
+  const handleContinue = () => {
+    if (selectedTimeSlot && selectedDate) {
+      navigate('/time-selection', {
+        state: {
+          selectedDate,
+          selectedTimeSlot
         }
-      ]
+      });
     }
-  ];
+  };
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
@@ -95,16 +91,17 @@ const Booking = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             {isPriority ? (
-              <PriorityBookingForm
-                selectedDate={selectedDate}
-                selectedTimeSlot={selectedTimeSlot}
-              />
+              <PriorityBookingForm />
             ) : (
               <RegularBookingForm
+                scheduleData={scheduleData}
                 selectedDate={selectedDate}
                 selectedTimeSlot={selectedTimeSlot}
-                timeSlots={timeSlots}
-                onTimeSlotSelect={handleTimeSlotSelect}
+                setSelectedDate={handleDateSelect}
+                setSelectedTimeSlot={handleTimeSlotSelect}
+                handleContinue={handleContinue}
+                showCalendar={showCalendar}
+                setShowCalendar={setShowCalendar}
               />
             )}
           </div>

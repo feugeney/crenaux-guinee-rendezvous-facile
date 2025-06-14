@@ -64,7 +64,6 @@ export interface Offer {
   updated_at: string;
 }
 
-// Missing types that are used throughout the codebase
 export interface DaySchedule {
   date: string;
   slots: TimeSlot[];

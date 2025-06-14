@@ -1,4 +1,5 @@
-import { Offer } from '@/types';
+
+import { Offer, Coach, DaySchedule } from '@/types';
 
 export const coaches = [
   {
@@ -8,7 +9,23 @@ export const coaches = [
   }
 ];
 
-export const scheduleData = [
+export const coachData: Coach = {
+  name: "Domani Doré",
+  speciality: "Coaching politique et leadership",
+  imageUrl: "/lovable-uploads/bf4a0354-13be-43ba-98a9-a4dbd932fd80.png"
+};
+
+export const coachingTopics = [
+  'Stratégie politique',
+  'Leadership féminin',
+  'Communication publique',
+  'Gestion de campagne',
+  'Négociation politique',
+  'Media training',
+  'Développement personnel'
+];
+
+export const scheduleData: DaySchedule[] = [
   {
     date: "2024-06-14",
     slots: [

@@ -37,7 +37,8 @@ const DashboardUpcomingBookings = () => {
         .from('bookings')
         .select('*')
         .gte('date', today)
-        .in('payment_status', ['completed', 'pending'])
+        .eq('status', 'confirmed')
+        .eq('payment_status', 'completed')
         .order('date', { ascending: true })
         .order('start_time', { ascending: true })
         .limit(5);
@@ -51,27 +52,13 @@ const DashboardUpcomingBookings = () => {
     }
   };
 
-  const getStatusColor = (status: string, paymentStatus: string) => {
-    if (paymentStatus === 'pending') return 'bg-yellow-100 text-yellow-800';
-    if (status === 'confirmed') return 'bg-green-100 text-green-800';
-    if (status === 'cancelled') return 'bg-red-100 text-red-800';
-    return 'bg-blue-100 text-blue-800';
-  };
-
-  const getStatusText = (status: string, paymentStatus: string) => {
-    if (paymentStatus === 'pending') return 'En attente';
-    if (status === 'confirmed') return 'Confirmé';
-    if (status === 'cancelled') return 'Annulé';
-    return 'En attente';
-  };
-
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="h-5 w-5" />
-            <span>5 Prochains Rendez-vous</span>
+            <span>5 Prochains Rendez-vous Confirmés</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -88,13 +75,13 @@ const DashboardUpcomingBookings = () => {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Calendar className="h-5 w-5" />
-          <span>5 Prochains Rendez-vous</span>
+          <span>5 Prochains Rendez-vous Confirmés</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {bookings.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
-            Aucun rendez-vous à venir
+            Aucun rendez-vous confirmé à venir
           </div>
         ) : (
           <div className="space-y-3">
@@ -128,9 +115,9 @@ const DashboardUpcomingBookings = () => {
                 </div>
                 <Badge 
                   variant="outline" 
-                  className={`${getStatusColor(booking.status, booking.payment_status)} text-xs`}
+                  className="bg-green-100 text-green-800 text-xs"
                 >
-                  {getStatusText(booking.status, booking.payment_status)}
+                  Confirmé
                 </Badge>
               </div>
             ))}

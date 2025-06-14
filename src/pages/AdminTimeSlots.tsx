@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SimpleTimeSlotList from '@/components/admin/SimpleTimeSlotList';
-import BulkTimeSlotCreator from '@/components/admin/BulkTimeSlotCreator';
 import { Calendar, Clock, BarChart3 } from 'lucide-react';
 import { fetchTimeSlots, createTimeSlot, updateTimeSlot, deleteTimeSlot } from '@/services/timeSlotService';
 import { TimeSlot } from '@/types';
@@ -200,40 +199,25 @@ const AdminTimeSlots = () => {
           </Card>
         </div>
 
-        {/* Création en masse */}
-        <div>
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 rounded-t-lg">
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-green-700" />
-                <span>Création en masse</span>
-              </CardTitle>
-              <CardDescription>
-                Créez plusieurs créneaux simultanément
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <BulkTimeSlotCreator />
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Liste des créneaux */}
         <div>
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-t-lg">
               <CardTitle className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-purple-700" />
-                <span>Liste de tous les créneaux</span>
+                <span>Gestion des créneaux horaires</span>
               </CardTitle>
               <CardDescription>
-                Gérez, modifiez et supprimez vos créneaux existants
+                Créez, modifiez et supprimez vos créneaux individuellement
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <SimpleTimeSlotList 
                 key={refreshKey} 
-                timeSlots={timeSlots}
+                timeSlots={timeSlots.map(slot => ({
+                  ...slot,
+                  specific_date: slot.specific_date || new Date().toISOString().split('T')[0]
+                }))}
                 onEdit={handleTimeSlotEdit}
                 onDelete={handleTimeSlotDelete}
                 onCreate={handleTimeSlotCreate}

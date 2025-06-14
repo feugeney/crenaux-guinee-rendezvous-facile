@@ -1,5 +1,8 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import Index from './pages/Index';
 import Booking from './pages/Booking';
 import TimeSelection from './pages/TimeSelection';
@@ -26,13 +29,13 @@ import AdminPoliticalLaunchValidated from './pages/AdminPoliticalLaunchValidated
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
-import { QueryClient } from 'react-query';
-import { Toaster } from 'react-hot-toast';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
-      <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <Router>
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/" element={<Index />} />
@@ -67,8 +70,8 @@ function App() {
           </Routes>
           <Toaster />
         </div>
-      </BrowserRouter>
-    </QueryClient>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

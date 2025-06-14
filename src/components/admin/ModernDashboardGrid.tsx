@@ -4,151 +4,126 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Package, 
-  Bell, 
-  Settings, 
+  Calendar, 
   Users, 
-  Crown,
-  AlertTriangle,
-  CheckCircle,
-  MessageSquare,
-  BarChart3,
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
   ArrowRight,
-  Clock
+  TrendingUp,
+  FileText
 } from 'lucide-react';
-import RecentActivity from './RecentActivity';
+import DashboardUpcomingBookings from './DashboardUpcomingBookings';
 
 const ModernDashboardGrid = () => {
   const navigate = useNavigate();
 
   const quickActions = [
     {
+      title: 'Demandes prioritaires',
+      description: 'Gérer les demandes urgentes',
+      icon: AlertTriangle,
+      color: 'orange',
+      action: () => navigate('/admin/bookings-pending'),
+      gradient: 'from-orange-500 to-red-500',
+      bgGradient: 'from-orange-50 to-red-50'
+    },
+    {
+      title: 'Rendez-vous confirmés',
+      description: 'Voir les RDV validés',
+      icon: CheckCircle,
+      color: 'green',
+      action: () => navigate('/admin/bookings-confirmed'),
+      gradient: 'from-green-500 to-green-600',
+      bgGradient: 'from-green-50 to-green-100'
+    },
+    {
       title: 'Créneaux horaires',
       description: 'Gérer les disponibilités',
-      icon: <Clock className="h-5 w-5" />,
+      icon: Clock,
+      color: 'blue',
       action: () => navigate('/admin/time-slots'),
-      color: 'from-blue-500 to-blue-600',
-      hoverColor: 'hover:from-blue-600 hover:to-blue-700'
+      gradient: 'from-blue-500 to-blue-600',
+      bgGradient: 'from-blue-50 to-blue-100'
     },
     {
-      title: 'Gestion des offres',
-      description: 'Services et tarifs',
-      icon: <Package className="h-5 w-5" />,
-      action: () => navigate('/admin/offers'),
-      color: 'from-green-500 to-green-600',
-      hoverColor: 'hover:from-green-600 hover:to-green-700'
-    },
-    {
-      title: 'Rendez-vous',
-      description: 'Planification client',
-      icon: <CheckCircle className="h-5 w-5" />,
-      action: () => navigate('/admin/bookings'),
-      color: 'from-purple-500 to-purple-600',
-      hoverColor: 'hover:from-purple-600 hover:to-purple-700'
-    },
-    {
-      title: 'Clients',
-      description: 'Base de données',
-      icon: <Users className="h-5 w-5" />,
-      action: () => navigate('/admin/clients'),
-      color: 'from-indigo-500 to-indigo-600',
-      hoverColor: 'hover:from-indigo-600 hover:to-indigo-700'
-    },
-    {
-      title: 'Demandes prioritaires',
-      description: 'Traitement urgent',
-      icon: <AlertTriangle className="h-5 w-5" />,
-      action: () => navigate('/admin/priority-requests'),
-      color: 'from-amber-500 to-amber-600',
-      hoverColor: 'hover:from-amber-600 hover:to-amber-700'
-    },
-    {
-      title: 'Programme VIP',
-      description: 'Lancement politique',
-      icon: <Crown className="h-5 w-5" />,
+      title: 'Candidatures politiques',
+      description: 'Suivi des candidatures',
+      icon: Users,
+      color: 'purple',
       action: () => navigate('/admin/political-launch'),
-      color: 'from-gradient-to-r from-amber-400 via-yellow-500 to-amber-600',
-      hoverColor: 'hover:from-amber-500 hover:to-yellow-600'
+      gradient: 'from-purple-500 to-purple-600',
+      bgGradient: 'from-purple-50 to-purple-100'
     }
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+      {/* Prochains Rendez-vous - prend 2 colonnes sur xl */}
+      <div className="xl:col-span-2">
+        <DashboardUpcomingBookings />
+      </div>
+
       {/* Actions rapides */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center space-x-2 text-xl">
-            <BarChart3 className="h-6 w-6 text-blue-600" />
-            <span>Actions rapides</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className={`h-24 flex flex-col items-center justify-center space-y-2 text-white border-0 bg-gradient-to-r ${action.color} ${action.hoverColor} transition-all duration-300 hover:scale-105 hover:shadow-lg group`}
-                onClick={action.action}
-              >
-                <div className="flex items-center space-x-2">
-                  {action.icon}
-                  <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-medium">{action.title}</div>
-                  <div className="text-xs opacity-90">{action.description}</div>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-slate-800">
+              <TrendingUp className="h-5 w-5" />
+              <span>Actions Rapides</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {quickActions.map((action, index) => {
+              const IconComponent = action.icon;
+              return (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  className={`w-full justify-between p-4 h-auto bg-gradient-to-r ${action.bgGradient} hover:shadow-md transition-all group`}
+                  onClick={action.action}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 bg-gradient-to-br ${action.gradient} rounded-lg`}>
+                      <IconComponent className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <div className={`font-medium text-${action.color}-800 text-sm`}>
+                        {action.title}
+                      </div>
+                      <div className={`text-xs text-${action.color}-600`}>
+                        {action.description}
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              );
+            })}
+          </CardContent>
+        </Card>
 
-      {/* Grille principale sans calendrier */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Activité récente */}
-        <div className="space-y-6">
-          <RecentActivity />
-        </div>
-
-        {/* Liens rapides */}
-        <div className="space-y-6">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Settings className="h-5 w-5 text-gray-600" />
-                <span>Paramètres</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => navigate('/admin/notifications')}
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                Centre de notifications
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => navigate('/admin/testimonials')}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Témoignages clients
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => navigate('/admin/stripe-settings')}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configuration Stripe
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Statistiques rapides */}
+        <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-indigo-800">
+              <FileText className="h-5 w-5" />
+              <span>Aperçu Rapide</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-indigo-900">12</div>
+                <div className="text-xs text-indigo-600">RDV ce mois</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-900">5</div>
+                <div className="text-xs text-purple-600">En attente</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

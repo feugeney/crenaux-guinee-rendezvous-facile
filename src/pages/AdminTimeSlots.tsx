@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import SimpleTimeSlotCreator from '@/components/admin/SimpleTimeSlotCreator';
 import SimpleTimeSlotList from '@/components/admin/SimpleTimeSlotList';
 import { Calendar, Clock, BarChart3 } from 'lucide-react';
 
@@ -108,33 +107,28 @@ const AdminTimeSlots = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <div>
-            <SimpleTimeSlotCreator onSubmit={handleSubmitTimeSlot} />
-          </div>
-          
-          <div>
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-t-lg">
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-purple-700" />
-                  <span>Liste de tous les créneaux</span>
-                </CardTitle>
-                <CardDescription>
-                  Gérez, modifiez et supprimez vos créneaux existants
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <SimpleTimeSlotList 
-                  key={refreshKey} 
-                  timeSlots={timeSlots}
-                  onEdit={handleTimeSlotEdit}
-                  onDelete={handleTimeSlotDelete}
-                  onCreate={handleTimeSlotCreate}
-                />
-              </CardContent>
-            </Card>
-          </div>
+        {/* Liste des créneaux */}
+        <div>
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-purple-700" />
+                <span>Liste de tous les créneaux</span>
+              </CardTitle>
+              <CardDescription>
+                Gérez, modifiez et supprimez vos créneaux existants
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <SimpleTimeSlotList 
+                key={refreshKey} 
+                timeSlots={timeSlots}
+                onEdit={handleTimeSlotEdit}
+                onDelete={handleTimeSlotDelete}
+                onCreate={handleTimeSlotCreate}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AdminHorizontalLayout>
@@ -142,3 +136,4 @@ const AdminTimeSlots = () => {
 };
 
 export default AdminTimeSlots;
+

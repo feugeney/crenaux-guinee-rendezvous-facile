@@ -1,7 +1,6 @@
 
 import React from 'react';
 import AdminHorizontalLayout from '@/components/admin/AdminHorizontalLayout';
-import PoliticalLaunchCard from '@/components/admin/PoliticalLaunchCard';
 import PoliticalApplicationsList from '@/components/admin/PoliticalApplicationsList';
 import { Card, CardContent } from '@/components/ui/card';
 import { Crown, Star, Users, Award } from 'lucide-react';
@@ -85,7 +84,6 @@ const AdminPoliticalLaunch = () => {
         </div>
         
         <div className="space-y-6">
-          <PoliticalLaunchCard />
           <PoliticalApplicationsList />
         </div>
       </div>

@@ -148,9 +148,19 @@ export const SigecSidebar: React.FC<SigecSidebarProps> = ({ collapsed, onToggle 
       title: 'Configuration',
       items: [
         {
+          title: 'Administration',
+          icon: <Settings className="h-5 w-5" />,
+          path: '/admin/administration'
+        },
+        {
           title: 'Paramètres',
           icon: <Settings className="h-5 w-5" />,
           path: '/admin/settings'
+        },
+        {
+          title: 'Paramètres Stripe',
+          icon: <FileText className="h-5 w-5" />,
+          path: '/admin/stripe-settings'
         }
       ]
     }

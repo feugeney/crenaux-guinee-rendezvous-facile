@@ -90,7 +90,7 @@ const SigecDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header simple */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
         <p className="text-gray-600">Vue d'ensemble de votre cabinet de coaching politique</p>

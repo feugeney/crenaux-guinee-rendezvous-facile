@@ -15,6 +15,7 @@ import StrategicConsultation from './pages/StrategicConsultation';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
+import Admin from './pages/Admin';
 
 function App() {
   // Create QueryClient inside component to ensure proper React context
@@ -43,6 +44,9 @@ function App() {
             <Route path="/strategic-consultation" element={<StrategicConsultation />} />
             <Route path="/political-launch" element={<PoliticalLaunchForm />} />
             <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
+            
+            {/* Routes d'administration */}
+            <Route path="/admin/*" element={<Admin />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

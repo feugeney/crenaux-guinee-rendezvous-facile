@@ -29,6 +29,12 @@ import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
 import AdminPoliticalLaunchSchedule from './pages/AdminPoliticalLaunchSchedule';
 import AdminPoliticalLaunchPending from './pages/AdminPoliticalLaunchPending';
 import AdminPoliticalLaunchValidated from './pages/AdminPoliticalLaunchValidated';
+import AdminAccountingOverview from './pages/AdminAccountingOverview';
+import AdminAccountingRevenue from './pages/AdminAccountingRevenue';
+import AdminAccountingInvoices from './pages/AdminAccountingInvoices';
+import AdminHRTeam from './pages/AdminHRTeam';
+import AdminHRPerformance from './pages/AdminHRPerformance';
+import AdminHRAttendance from './pages/AdminHRAttendance';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
@@ -80,12 +86,12 @@ function App() {
             <Route path="/admin/political-launch-pending" element={<AdminPoliticalLaunchPending />} />
             <Route path="/admin/political-launch-validated" element={<AdminPoliticalLaunchValidated />} />
             
-            {/* New accounting routes */}
+            {/* Accounting routes */}
             <Route path="/admin/accounting/overview" element={<AdminAccountingOverview />} />
             <Route path="/admin/accounting/revenue" element={<AdminAccountingRevenue />} />
             <Route path="/admin/accounting/invoices" element={<AdminAccountingInvoices />} />
             
-            {/* New HR routes */}
+            {/* HR routes */}
             <Route path="/admin/hr/team" element={<AdminHRTeam />} />
             <Route path="/admin/hr/performance" element={<AdminHRPerformance />} />
             <Route path="/admin/hr/attendance" element={<AdminHRAttendance />} />

@@ -6,14 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { 
   LayoutDashboard, 
   Bell, 
-  Mail, 
+  Calendar, 
   CheckCircle, 
   Users, 
-  FolderOpen,
+  DollarSign,
   FileText,
-  Eye,
+  Settings,
   Building2,
-  User
+  AlertTriangle,
+  TrendingUp,
+  MessageSquare
 } from 'lucide-react';
 
 export const SigecSidebar = () => {
@@ -22,7 +24,7 @@ export const SigecSidebar = () => {
 
   const menuSections = [
     {
-      title: 'Navigation - Directeur',
+      title: 'Navigation - Administration',
       items: [
         {
           title: 'Tableau de bord',
@@ -34,50 +36,85 @@ export const SigecSidebar = () => {
           title: 'Notifications',
           icon: <Bell className="h-5 w-5" />,
           path: '/admin/notifications',
-          badge: '4'
+          badge: '3'
+        }
+      ]
+    },
+    {
+      title: 'Gestion des Rendez-vous',
+      items: [
+        {
+          title: 'Créneaux horaires',
+          icon: <Calendar className="h-5 w-5" />,
+          path: '/admin/time-slots'
         },
         {
-          title: 'Courriers reçus',
-          icon: <Mail className="h-5 w-5" />,
-          path: '/admin/courriers-recus',
-          badge: '156'
+          title: 'Demandes prioritaires',
+          icon: <AlertTriangle className="h-5 w-5" />,
+          path: '/admin/priority-requests',
+          badge: '3'
         },
         {
-          title: 'Validation SG',
+          title: 'Rendez-vous confirmés',
           icon: <CheckCircle className="h-5 w-5" />,
-          path: '/admin/validation-sg'
+          path: '/admin/bookings-confirmed',
+          badge: '24'
         },
         {
-          title: 'Affectation Directions',
+          title: 'Lancement politique',
           icon: <Building2 className="h-5 w-5" />,
-          path: '/admin/affectation-directions'
+          path: '/admin/political-launch',
+          badge: 'VIP'
+        }
+      ]
+    },
+    {
+      title: 'Comptabilité',
+      items: [
+        {
+          title: 'Vue d\'ensemble',
+          icon: <TrendingUp className="h-5 w-5" />,
+          path: '/admin/accounting/overview'
         },
         {
-          title: 'Affectation Divisions',
+          title: 'Revenus',
+          icon: <DollarSign className="h-5 w-5" />,
+          path: '/admin/accounting/revenue'
+        }
+      ]
+    },
+    {
+      title: 'Ressources Humaines',
+      items: [
+        {
+          title: 'Équipe',
           icon: <Users className="h-5 w-5" />,
-          path: '/admin/affectation-divisions'
+          path: '/admin/hr/team'
+        }
+      ]
+    },
+    {
+      title: 'Communication',
+      items: [
+        {
+          title: 'Témoignages',
+          icon: <MessageSquare className="h-5 w-5" />,
+          path: '/admin/testimonials'
         },
         {
-          title: 'Courriers à valider',
-          icon: <FolderOpen className="h-5 w-5" />,
-          path: '/admin/courriers-valider',
-          badge: '35'
-        },
+          title: 'Clients',
+          icon: <Users className="h-5 w-5" />,
+          path: '/admin/clients'
+        }
+      ]
+    },
+    {
+      title: 'Configuration',
+      items: [
         {
-          title: 'Documents à viser',
-          icon: <FileText className="h-5 w-5" />,
-          path: '/admin/documents-viser',
-          badge: '12'
-        },
-        {
-          title: 'Suivi direction',
-          icon: <Eye className="h-5 w-5" />,
-          path: '/admin/suivi-direction'
-        },
-        {
-          title: 'Ma direction',
-          icon: <User className="h-5 w-5" />,
-          path: '/admin/ma-direction'
+          title: 'Paramètres',
+          icon: <Settings className="h-5 w-5" />,
+          path: '/admin/settings'
         }
       ]
     }
@@ -110,7 +147,11 @@ export const SigecSidebar = () => {
                       {item.badge && (
                         <Badge 
                           variant="secondary" 
-                          className="ml-2 bg-red-100 text-red-800 text-xs"
+                          className={`ml-2 text-xs ${
+                            item.badge === 'VIP' ? 'bg-purple-100 text-purple-800' :
+                            item.badge === '3' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}
                         >
                           {item.badge}
                         </Badge>

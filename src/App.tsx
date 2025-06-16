@@ -12,29 +12,6 @@ import Payment from './pages/Payment';
 import Shop from './pages/Shop';
 import Subscription from './pages/Subscription';
 import StrategicConsultation from './pages/StrategicConsultation';
-import Admin from './pages/Admin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminBookings from './pages/AdminBookings';
-import AdminBookingsPending from './pages/AdminBookingsPending';
-import AdminBookingsConfirmed from './pages/AdminBookingsConfirmed';
-import AdminBookingsRejected from './pages/AdminBookingsRejected';
-import AdminTimeSlots from './pages/AdminTimeSlots';
-import AdminPriorityRequests from './pages/AdminPriorityRequests';
-import AdminOffers from './pages/AdminOffers';
-import AdminTestimonials from './pages/AdminTestimonials';
-import AdminNotifications from './pages/AdminNotifications';
-import AdminSettings from './pages/AdminSettings';
-import AdminStripeSettings from './pages/AdminStripeSettings';
-import AdminPoliticalLaunch from './pages/AdminPoliticalLaunch';
-import AdminPoliticalLaunchSchedule from './pages/AdminPoliticalLaunchSchedule';
-import AdminPoliticalLaunchPending from './pages/AdminPoliticalLaunchPending';
-import AdminPoliticalLaunchValidated from './pages/AdminPoliticalLaunchValidated';
-import AdminAccountingOverview from './pages/AdminAccountingOverview';
-import AdminAccountingRevenue from './pages/AdminAccountingRevenue';
-import AdminAccountingInvoices from './pages/AdminAccountingInvoices';
-import AdminHRTeam from './pages/AdminHRTeam';
-import AdminHRPerformance from './pages/AdminHRPerformance';
-import AdminHRAttendance from './pages/AdminHRAttendance';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
@@ -66,35 +43,6 @@ function App() {
             <Route path="/strategic-consultation" element={<StrategicConsultation />} />
             <Route path="/political-launch" element={<PoliticalLaunchForm />} />
             <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
-            
-            {/* Admin routes */}
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/bookings" element={<AdminBookings />} />
-            <Route path="/admin/bookings-pending" element={<AdminBookingsPending />} />
-            <Route path="/admin/bookings-confirmed" element={<AdminBookingsConfirmed />} />
-            <Route path="/admin/bookings-rejected" element={<AdminBookingsRejected />} />
-            <Route path="/admin/time-slots" element={<AdminTimeSlots />} />
-            <Route path="/admin/priority-requests" element={<AdminPriorityRequests />} />
-            <Route path="/admin/offers" element={<AdminOffers />} />
-            <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-            <Route path="/admin/notifications" element={<AdminNotifications />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/stripe-settings" element={<AdminStripeSettings />} />
-            <Route path="/admin/political-launch" element={<AdminPoliticalLaunch />} />
-            <Route path="/admin/political-launch-schedule/:id" element={<AdminPoliticalLaunchSchedule />} />
-            <Route path="/admin/political-launch-pending" element={<AdminPoliticalLaunchPending />} />
-            <Route path="/admin/political-launch-validated" element={<AdminPoliticalLaunchValidated />} />
-            
-            {/* Accounting routes */}
-            <Route path="/admin/accounting/overview" element={<AdminAccountingOverview />} />
-            <Route path="/admin/accounting/revenue" element={<AdminAccountingRevenue />} />
-            <Route path="/admin/accounting/invoices" element={<AdminAccountingInvoices />} />
-            
-            {/* HR routes */}
-            <Route path="/admin/hr/team" element={<AdminHRTeam />} />
-            <Route path="/admin/hr/performance" element={<AdminHRPerformance />} />
-            <Route path="/admin/hr/attendance" element={<AdminHRAttendance />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

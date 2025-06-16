@@ -4,6 +4,9 @@ import SigecLayout from '@/components/admin/SigecLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SystemNotifications } from '@/components/admin/SystemNotifications';
+import { BackupManagement } from '@/components/admin/BackupManagement';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { 
   Settings, 
   Bell, 
@@ -13,46 +16,35 @@ import {
   Globe,
   Palette,
   Save,
-  RefreshCw
+  RefreshCw,
+  Server,
+  Users
 } from 'lucide-react';
 
 const AdminSettings = () => {
   const [activeTab, setActiveTab] = useState('general');
-  const [settings, setSettings] = useState({
-    organizationName: 'Établissement Public Administratif de Conakry',
-    organizationCode: 'EPAC-001',
-    fiscalYear: '2024',
-    currency: 'FG',
-    language: 'fr',
-    timezone: 'Africa/Conakry',
-    emailNotifications: true,
-    smsNotifications: false,
-    autoBackup: true,
-    backupFrequency: '6h',
-    sessionTimeout: '8h',
-    twoFactorAuth: false,
-    auditLogs: true,
-    publicReports: false
-  });
+  const { settings, updateSetting, loading } = useSystemSettings();
 
   const tabs = [
     { id: 'general', label: 'Général', icon: Settings },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Sécurité', icon: Shield },
     { id: 'system', label: 'Système', icon: Database },
+    { id: 'backup', label: 'Sauvegardes', icon: Server },
     { id: 'appearance', label: 'Apparence', icon: Palette }
   ];
 
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const getSettingValue = (key: string) => {
+    const setting = settings.find(s => s.key === key);
+    return setting?.value || '';
+  };
+
+  const handleSettingChange = async (key: string, value: string) => {
+    await updateSetting(key, value);
   };
 
   const handleSave = () => {
-    console.log('Sauvegarde des paramètres:', settings);
-    // Ici, vous ajouteriez la logique de sauvegarde
+    console.log('Paramètres sauvegardés');
   };
 
   return (
@@ -109,85 +101,74 @@ const AdminSettings = () => {
               <CardContent className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom de l'organisation
+                    Nom de l'application
                   </label>
                   <input
                     type="text"
-                    value={settings.organizationName}
-                    onChange={(e) => handleSettingChange('organizationName', e.target.value)}
+                    value={getSettingValue('app_name')}
+                    onChange={(e) => handleSettingChange('app_name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code organisation
+                    Version de l'application
                   </label>
                   <input
                     type="text"
-                    value={settings.organizationCode}
-                    onChange={(e) => handleSettingChange('organizationCode', e.target.value)}
+                    value={getSettingValue('app_version')}
+                    onChange={(e) => handleSettingChange('app_version', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Année fiscale
+                    Email système
                   </label>
-                  <select
-                    value={settings.fiscalYear}
-                    onChange={(e) => handleSettingChange('fiscalYear', e.target.value)}
+                  <input
+                    type="email"
+                    value={getSettingValue('system_email')}
+                    onChange={(e) => handleSettingChange('system_email', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                  </select>
+                  />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Préférences Régionales</CardTitle>
+                <CardTitle>Configuration Système</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Devise
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Mode maintenance</h3>
+                    <p className="text-sm text-gray-600">Activer le mode maintenance</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={getSettingValue('maintenance_mode') === 'true'}
+                      onChange={(e) => handleSettingChange('maintenance_mode', e.target.checked.toString())}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
-                  <select
-                    value={settings.currency}
-                    onChange={(e) => handleSettingChange('currency', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="FG">Franc Guinéen (FG)</option>
-                    <option value="USD">Dollar US (USD)</option>
-                    <option value="EUR">Euro (EUR)</option>
-                  </select>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Langue
+                    Fréquence des sauvegardes (heures)
                   </label>
                   <select
-                    value={settings.language}
-                    onChange={(e) => handleSettingChange('language', e.target.value)}
+                    value={getSettingValue('backup_frequency')}
+                    onChange={(e) => handleSettingChange('backup_frequency', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
-                    <option value="fr">Français</option>
-                    <option value="en">English</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fuseau horaire
-                  </label>
-                  <select
-                    value={settings.timezone}
-                    onChange={(e) => handleSettingChange('timezone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="Africa/Conakry">Africa/Conakry (GMT+0)</option>
-                    <option value="UTC">UTC</option>
+                    <option value="1">Toutes les heures</option>
+                    <option value="6">Toutes les 6 heures</option>
+                    <option value="12">Toutes les 12 heures</option>
+                    <option value="24">Quotidienne</option>
                   </select>
                 </div>
               </CardContent>
@@ -196,146 +177,63 @@ const AdminSettings = () => {
         )}
 
         {/* Notifications Tab */}
-        {activeTab === 'notifications' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Paramètres de Notifications</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Notifications par email</h3>
-                  <p className="text-sm text-gray-600">Recevoir les alertes système par email</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.emailNotifications}
-                    onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Notifications SMS</h3>
-                  <p className="text-sm text-gray-600">Recevoir les alertes critiques par SMS</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.smsNotifications}
-                    onChange={(e) => handleSettingChange('smsNotifications', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="border-t pt-6">
-                <h3 className="font-medium text-gray-900 mb-4">Configuration Email</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Serveur SMTP
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="smtp.example.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Port
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="587"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {activeTab === 'notifications' && <SystemNotifications />}
 
         {/* Security Tab */}
         {activeTab === 'security' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Authentification</CardTitle>
+                <CardTitle>Paramètres de Sécurité</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Authentification à deux facteurs</h3>
-                    <p className="text-sm text-gray-600">Sécurité renforcée pour les connexions</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.twoFactorAuth}
-                      onChange={(e) => handleSettingChange('twoFactorAuth', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Timeout de session (heures)
                   </label>
+                  <select
+                    value={getSettingValue('session_timeout')}
+                    onChange={(e) => handleSettingChange('session_timeout', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="1">1 heure</option>
+                    <option value="4">4 heures</option>
+                    <option value="8">8 heures</option>
+                    <option value="24">24 heures</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Timeout de session
+                    Tentatives de connexion max
                   </label>
-                  <select
-                    value={settings.sessionTimeout}
-                    onChange={(e) => handleSettingChange('sessionTimeout', e.target.value)}
+                  <input
+                    type="number"
+                    value={getSettingValue('max_login_attempts')}
+                    onChange={(e) => handleSettingChange('max_login_attempts', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="1h">1 heure</option>
-                    <option value="4h">4 heures</option>
-                    <option value="8h">8 heures</option>
-                    <option value="24h">24 heures</option>
-                  </select>
+                    min="1"
+                    max="10"
+                  />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Journalisation</CardTitle>
+                <CardTitle>Notifications Email</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-gray-900">Journaux d'audit</h3>
-                    <p className="text-sm text-gray-600">Enregistrer toutes les actions utilisateur</p>
+                    <h3 className="font-medium text-gray-900">Notifications par email</h3>
+                    <p className="text-sm text-gray-600">Activer les notifications système</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={settings.auditLogs}
-                      onChange={(e) => handleSettingChange('auditLogs', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Rapports publics</h3>
-                    <p className="text-sm text-gray-600">Permettre l'accès public aux rapports</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.publicReports}
-                      onChange={(e) => handleSettingChange('publicReports', e.target.checked)}
+                      checked={getSettingValue('email_notifications') === 'true'}
+                      onChange={(e) => handleSettingChange('email_notifications', e.target.checked.toString())}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -350,67 +248,47 @@ const AdminSettings = () => {
         {activeTab === 'system' && (
           <Card>
             <CardHeader>
-              <CardTitle>Configuration Système</CardTitle>
+              <CardTitle>Informations Système</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Sauvegarde automatique</h3>
-                  <p className="text-sm text-gray-600">Sauvegarder automatiquement les données</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.autoBackup}
-                    onChange={(e) => handleSettingChange('autoBackup', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {settings.autoBackup && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fréquence de sauvegarde
-                  </label>
-                  <select
-                    value={settings.backupFrequency}
-                    onChange={(e) => handleSettingChange('backupFrequency', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="1h">Toutes les heures</option>
-                    <option value="6h">Toutes les 6 heures</option>
-                    <option value="12h">Toutes les 12 heures</option>
-                    <option value="24h">Quotidienne</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="border-t pt-6">
-                <h3 className="font-medium text-gray-900 mb-4">Informations Système</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Application :</span>
+                    <span className="font-medium">{getSettingValue('app_name')}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Version :</span>
-                    <span className="font-medium">SIG-Budget v1.0</span>
+                    <span className="font-medium">{getSettingValue('app_version')}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mode maintenance :</span>
+                    <Badge variant={getSettingValue('maintenance_mode') === 'true' ? 'destructive' : 'default'}>
+                      {getSettingValue('maintenance_mode') === 'true' ? 'Activé' : 'Désactivé'}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Base de données :</span>
-                    <span className="font-medium">PostgreSQL 14.2</span>
+                    <span className="font-medium">PostgreSQL</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Serveur :</span>
-                    <span className="font-medium">Ubuntu 22.04 LTS</span>
+                    <span className="text-gray-600">Sauvegarde :</span>
+                    <span className="font-medium">Toutes les {getSettingValue('backup_frequency')}h</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Dernière sauvegarde :</span>
-                    <span className="font-medium">16/06/2024 12:00</span>
+                    <span className="text-gray-600">Dernière activité :</span>
+                    <span className="font-medium">{new Date().toLocaleString('fr-FR')}</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Backup Tab */}
+        {activeTab === 'backup' && <BackupManagement />}
 
         {/* Appearance Tab */}
         {activeTab === 'appearance' && (

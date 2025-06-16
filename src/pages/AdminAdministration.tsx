@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import SigecLayout from '@/components/admin/SigecLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { 
   Users, 
   Shield, 
@@ -16,11 +16,13 @@ import {
   Trash2,
   Eye,
   Lock,
-  Unlock
+  Unlock,
+  Download
 } from 'lucide-react';
 
 const AdminAdministration = () => {
   const [activeTab, setActiveTab] = useState('users');
+  const { logs, loading: logsLoading } = useActivityLogs();
 
   const users = [
     {
@@ -138,6 +140,22 @@ const AdminAdministration = () => {
     { id: 'system', label: 'Configuration', icon: Settings }
   ];
 
+  const exportLogs = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Date,Utilisateur,Action,Module,Détails\n"
+      + logs.map(log => 
+          `${log.created_at},${log.user_id || 'Système'},${log.action},${log.resource_type || 'N/A'},${JSON.stringify(log.details || {})}`
+        ).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <SigecLayout>
       <div className="space-y-6">
@@ -148,6 +166,10 @@ const AdminAdministration = () => {
             <p className="text-gray-600">Gestion des utilisateurs, rôles et configuration système</p>
           </div>
           <div className="flex items-center space-x-3">
+            <Button variant="outline" size="sm" onClick={exportLogs}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter logs
+            </Button>
             <Button variant="outline" size="sm">
               <Database className="h-4 w-4 mr-2" />
               Sauvegarde
@@ -157,6 +179,57 @@ const AdminAdministration = () => {
               Nouvel utilisateur
             </Button>
           </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="h-8 w-8 text-blue-600" />
+                <div>
+                  <p className="text-2xl font-bold">{users.length}</p>
+                  <p className="text-sm text-gray-600">Utilisateurs</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-8 w-8 text-green-600" />
+                <div>
+                  <p className="text-2xl font-bold">{users.filter(u => u.statut === 'Actif').length}</p>
+                  <p className="text-sm text-gray-600">Actifs</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Key className="h-8 w-8 text-purple-600" />
+                <div>
+                  <p className="text-2xl font-bold">{roles.length}</p>
+                  <p className="text-sm text-gray-600">Rôles</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Activity className="h-8 w-8 text-amber-600" />
+                <div>
+                  <p className="text-2xl font-bold">{logs.length}</p>
+                  <p className="text-sm text-gray-600">Actions</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tabs */}
@@ -301,39 +374,43 @@ const AdminAdministration = () => {
         {activeTab === 'logs' && (
           <Card>
             <CardHeader>
-              <CardTitle>Journaux d'Activité Système</CardTitle>
+              <CardTitle>Journaux d'Activité Système ({logs.length} entrées)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Date/Heure</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Utilisateur</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Action</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Module</th>
-                      <th className="text-center py-3 px-4 font-medium text-gray-900">Statut</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {systemLogs.map((log) => (
-                      <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 text-sm font-mono">{log.timestamp}</td>
-                        <td className="py-4 px-4 text-sm">{log.utilisateur}</td>
-                        <td className="py-4 px-4 text-sm">{log.action}</td>
-                        <td className="py-4 px-4">
-                          <Badge variant="outline">{log.module}</Badge>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <Badge variant={log.statut === 'Succès' ? 'default' : 'destructive'}>
-                            {log.statut}
-                          </Badge>
-                        </td>
+              {logsLoading ? (
+                <div className="text-center py-8">Chargement des logs...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Date/Heure</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Utilisateur</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Action</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Module</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Détails</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {logs.slice(0, 20).map((log) => (
+                        <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-4 px-4 text-sm font-mono">
+                            {new Date(log.created_at).toLocaleString('fr-FR')}
+                          </td>
+                          <td className="py-4 px-4 text-sm">{log.user_id || 'Système'}</td>
+                          <td className="py-4 px-4 text-sm">{log.action}</td>
+                          <td className="py-4 px-4">
+                            <Badge variant="outline">{log.resource_type || 'N/A'}</Badge>
+                          </td>
+                          <td className="py-4 px-4 text-sm max-w-xs truncate">
+                            {log.details ? JSON.stringify(log.details) : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -389,7 +466,11 @@ const AdminAdministration = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Dernière sauvegarde :</span>
-                  <span className="font-medium">16/06/2024 12:00</span>
+                  <span className="font-medium">{new Date().toLocaleDateString('fr-FR')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Activités enregistrées :</span>
+                  <span className="font-medium">{logs.length}</span>
                 </div>
               </CardContent>
             </Card>

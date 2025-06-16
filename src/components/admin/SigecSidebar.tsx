@@ -19,16 +19,24 @@ import {
   Receipt,
   UserCheck,
   PieChart,
-  BarChart3
+  BarChart3,
+  Menu,
+  LogOut
 } from 'lucide-react';
 
 interface SigecSidebarProps {
   collapsed: boolean;
+  onToggle: () => void;
 }
 
-export const SigecSidebar: React.FC<SigecSidebarProps> = ({ collapsed }) => {
+export const SigecSidebar: React.FC<SigecSidebarProps> = ({ collapsed, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuthenticated');
+    navigate('/admin');
+  };
 
   const menuSections = [
     {
@@ -149,11 +157,37 @@ export const SigecSidebar: React.FC<SigecSidebarProps> = ({ collapsed }) => {
   ];
 
   return (
-    <div className={`fixed left-0 top-20 bg-white border-r border-gray-200 h-[calc(100vh-80px)] shadow-sm transition-all duration-300 ${
+    <div className={`fixed left-0 top-0 bg-white border-r border-gray-200 h-screen shadow-sm transition-all duration-300 ${
       collapsed ? 'w-16' : 'w-64'
     }`}>
       <div className="p-4">
-        <nav className="space-y-6">
+        {/* Header avec logo et bouton toggle */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+          {!collapsed && (
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
+                alt="Domani Doré Logo" 
+                className="h-10 w-auto" 
+              />
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Administration</h2>
+                <p className="text-xs text-gray-500">Dom Consulting</p>
+              </div>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="p-2 hover:bg-gray-100"
+            title={collapsed ? "Agrandir le menu" : "Réduire le menu"}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <nav className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
           {menuSections.map((section) => (
             <div key={section.title} className="space-y-3">
               {!collapsed && (
@@ -200,6 +234,21 @@ export const SigecSidebar: React.FC<SigecSidebarProps> = ({ collapsed }) => {
             </div>
           ))}
         </nav>
+
+        {/* Bouton de déconnexion */}
+        <div className="absolute bottom-6 left-4 right-4">
+          <Button
+            variant="outline"
+            className={`w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 ${
+              collapsed ? 'px-2' : 'justify-start'
+            }`}
+            onClick={handleLogout}
+            title={collapsed ? "Déconnexion" : undefined}
+          >
+            <LogOut className="h-5 w-5" />
+            {!collapsed && <span className="ml-3">Déconnexion</span>}
+          </Button>
+        </div>
       </div>
     </div>
   );

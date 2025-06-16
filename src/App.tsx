@@ -15,12 +15,6 @@ import StrategicConsultation from './pages/StrategicConsultation';
 import NotFound from './pages/NotFound';
 import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
-import AdminBudgetDashboard from './pages/AdminBudgetDashboard';
-import AdminBudget from './pages/AdminBudget';
-import AdminExpenses from './pages/AdminExpenses';
-import AdminReports from './pages/AdminReports';
-import AdminAdministration from './pages/AdminAdministration';
-import AdminSettings from './pages/AdminSettings';
 
 function App() {
   // Create QueryClient inside component to ensure proper React context
@@ -49,15 +43,6 @@ function App() {
             <Route path="/strategic-consultation" element={<StrategicConsultation />} />
             <Route path="/political-launch" element={<PoliticalLaunchForm />} />
             <Route path="/political-launch-success" element={<PoliticalLaunchSuccess />} />
-            
-            {/* Admin Budget Routes */}
-            <Route path="/admin" element={<AdminBudgetDashboard />} />
-            <Route path="/admin/dashboard" element={<AdminBudgetDashboard />} />
-            <Route path="/admin/budget" element={<AdminBudget />} />
-            <Route path="/admin/expenses" element={<AdminExpenses />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/administration" element={<AdminAdministration />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

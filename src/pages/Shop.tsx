@@ -26,7 +26,7 @@ const getIconForTitle = (title: string) => {
 const Shop = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   useEffect(() => {
     const loadOffers = async () => {
@@ -44,9 +44,9 @@ const Shop = () => {
   }, []);
 
   // Filtrer les offres par catégorie si un filtre est sélectionné
-  const filteredOffers = categoryFilter 
-    ? offers.filter(offer => offer.category === categoryFilter)
-    : offers;
+  const filteredOffers = categoryFilter === "all"
+    ? offers
+    : offers.filter(offer => offer.category === categoryFilter);
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(
@@ -72,14 +72,14 @@ const Shop = () => {
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-gray-500" />
                   <Select 
-                    value={categoryFilter || ''} 
-                    onValueChange={(val) => setCategoryFilter(val || null)}
+                    value={categoryFilter} 
+                    onValueChange={setCategoryFilter}
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Filtrer par catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Toutes les catégories</SelectItem>
+                      <SelectItem value="all">Toutes les catégories</SelectItem>
                       {uniqueCategories.map((category) => (
                         <SelectItem key={category} value={category}>{
                           category === 'coaching' ? 'Coaching' :

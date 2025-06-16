@@ -80,6 +80,16 @@ function App() {
             <Route path="/admin/political-launch-pending" element={<AdminPoliticalLaunchPending />} />
             <Route path="/admin/political-launch-validated" element={<AdminPoliticalLaunchValidated />} />
             
+            {/* New accounting routes */}
+            <Route path="/admin/accounting/overview" element={<AdminAccountingOverview />} />
+            <Route path="/admin/accounting/revenue" element={<AdminAccountingRevenue />} />
+            <Route path="/admin/accounting/invoices" element={<AdminAccountingInvoices />} />
+            
+            {/* New HR routes */}
+            <Route path="/admin/hr/team" element={<AdminHRTeam />} />
+            <Route path="/admin/hr/performance" element={<AdminHRPerformance />} />
+            <Route path="/admin/hr/attendance" element={<AdminHRAttendance />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

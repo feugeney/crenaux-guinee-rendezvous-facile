@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -21,17 +22,17 @@ import AdminReports from './pages/AdminReports';
 import AdminAdministration from './pages/AdminAdministration';
 import AdminSettings from './pages/AdminSettings';
 
-// Create QueryClient instance outside component to prevent recreation
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 function App() {
+  // Create QueryClient inside component to ensure proper React context
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>

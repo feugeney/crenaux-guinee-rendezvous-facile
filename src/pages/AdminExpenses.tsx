@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import SigecLayout from '@/components/admin/SigecLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,9 +78,9 @@ const AdminExpenses = () => {
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'En attente': return 'warning';
+      case 'En attente': return 'secondary';
       case 'Validé': return 'default';
-      case 'Payé': return 'success';
+      case 'Payé': return 'default';
       case 'Rejeté': return 'destructive';
       default: return 'secondary';
     }

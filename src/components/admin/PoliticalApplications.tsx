@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock, Calendar, Plus, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock, Calendar, Plus, Trash2, CreditCard, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -72,22 +71,22 @@ export const PoliticalApplications = () => {
   };
 
   const initializeSchedule = () => {
-    // Initialiser 6 séances principales
+    // Initialiser 6 séances intensives
     const mainSessions = Array.from({ length: 6 }, (_, i) => ({
       session_number: i + 1,
       date: '',
       start_time: '10:00',
       end_time: '11:30',
-      topic: `Séance ${i + 1} - Formation politique`
+      topic: `Séance intensive ${i + 1} - Formation politique approfondie`
     }));
 
-    // Initialiser 2 séances de suivi
+    // Initialiser 2 semaines de suivi post-coaching
     const followUp = Array.from({ length: 2 }, (_, i) => ({
       session_number: i + 1,
       date: '',
       start_time: '10:00',
       end_time: '11:00',
-      topic: `Suivi ${i + 1} - Post-formation`
+      topic: `Suivi post-coaching semaine ${i + 1} - Accompagnement continu`
     }));
 
     setSessions(mainSessions);
@@ -146,6 +145,10 @@ export const PoliticalApplications = () => {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const getPaymentAmount = (application: PoliticalApplication) => {
+    return application.payment_option === 'full' ? '600 USD' : '250 USD/mois';
   };
 
   const handleUpdateStatus = async (applicationId: string, newStatus: string) => {
@@ -368,18 +371,70 @@ export const PoliticalApplications = () => {
 
       {/* Dialog de planification */}
       <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Planifier les séances - {selectedApplication?.full_name}</DialogTitle>
+            <DialogTitle>Planification - {selectedApplication?.full_name}</DialogTitle>
             <DialogDescription>
-              Définissez le planning des 6 séances principales et des 2 séances de suivi
+              Définissez le planning des 6 séances intensives et des 2 semaines de suivi post-coaching
             </DialogDescription>
           </DialogHeader>
           
+          {/* Informations de la candidature */}
+          {selectedApplication && (
+            <Card className="mb-6 bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Informations de la candidature
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Nom complet</p>
+                      <p className="font-medium">{selectedApplication.full_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Fonction</p>
+                      <p className="font-medium">{selectedApplication.professional_profile}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Montant à payer</p>
+                      <p className="font-medium text-green-600">{getPaymentAmount(selectedApplication)}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Option de paiement</p>
+                    <p className="font-medium">
+                      {selectedApplication.payment_option === 'full' ? 'Paiement complet' : 'Paiement mensuel'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Période de début souhaitée</p>
+                    <p className="font-medium">{selectedApplication.start_period}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Séances principales */}
+            {/* Séances intensives */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Séances principales (6 séances)</h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Séances intensives (6 séances)
+              </h3>
               <div className="space-y-4">
                 {sessions.map((session, index) => (
                   <Card key={index} className="p-4">
@@ -421,9 +476,12 @@ export const PoliticalApplications = () => {
               </div>
             </div>
 
-            {/* Séances de suivi */}
+            {/* Suivi post-coaching */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Séances de suivi (2 séances)</h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Suivi post-coaching (2 semaines)
+              </h3>
               <div className="space-y-4">
                 {followUpSessions.map((session, index) => (
                   <Card key={index} className="p-4">

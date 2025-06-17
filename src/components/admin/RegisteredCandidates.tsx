@@ -6,11 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Mail, Phone, Eye, Calendar, Flag } from 'lucide-react';
+import { User, Mail, Phone, Eye, Calendar, Flag, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { SessionDetailsDialog } from './session-tracking/SessionDetailsDialog';
+import { getCompletionPercentage } from './session-tracking/sessionUtils';
+import { PaidApplication, SessionSchedule } from './session-tracking/types';
 
 interface RegisteredCandidate {
   id: string;
@@ -25,6 +28,8 @@ interface RegisteredCandidate {
   payment_option: string;
   start_period: string;
   schedule_validated: boolean;
+  proposed_schedule?: any;
+  payment_link?: string;
 }
 
 export const RegisteredCandidates = () => {
@@ -33,6 +38,8 @@ export const RegisteredCandidates = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCandidate, setSelectedCandidate] = useState<RegisteredCandidate | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showSessionDetails, setShowSessionDetails] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<PaidApplication | null>(null);
 
   useEffect(() => {
     fetchCandidates();
@@ -54,6 +61,57 @@ export const RegisteredCandidates = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFollowSessions = (candidate: RegisteredCandidate) => {
+    // Convertir le candidat au format PaidApplication
+    const application: PaidApplication = {
+      id: candidate.id,
+      full_name: candidate.full_name,
+      email: candidate.email,
+      phone: candidate.phone,
+      professional_profile: candidate.professional_profile,
+      city_country: candidate.city_country,
+      preferred_topic: candidate.preferred_topic,
+      status: candidate.status,
+      created_at: candidate.created_at,
+      payment_option: candidate.payment_option,
+      start_period: candidate.start_period,
+      proposed_schedule: candidate.proposed_schedule,
+      schedule_validated: candidate.schedule_validated,
+      payment_link: candidate.payment_link
+    };
+    
+    setSelectedApplication(application);
+    setShowSessionDetails(true);
+  };
+
+  const getStatusBadge = (application: PaidApplication) => {
+    if (application.status === 'approved') {
+      return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
+    }
+    return <Badge variant="outline">{application.status}</Badge>;
+  };
+
+  const updateSessionStatus = (sessionIndex: number, completed: boolean, isFollowUp?: boolean) => {
+    if (!selectedApplication) return;
+    
+    const updatedApplication = { ...selectedApplication };
+    
+    if (isFollowUp) {
+      if (updatedApplication.proposed_schedule?.followUpSessions) {
+        updatedApplication.proposed_schedule.followUpSessions[sessionIndex].completed = completed;
+      }
+    } else {
+      if (updatedApplication.proposed_schedule?.sessions) {
+        updatedApplication.proposed_schedule.sessions[sessionIndex].completed = completed;
+      }
+    }
+    
+    setSelectedApplication(updatedApplication);
+    
+    // Ici vous pourriez sauvegarder les changements dans la base de données
+    toast.success(`Séance marquée comme ${completed ? 'terminée' : 'non terminée'}`);
   };
 
   const filteredCandidates = candidates.filter(candidate => 
@@ -198,17 +256,30 @@ export const RegisteredCandidates = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCandidate(candidate);
-                        setShowDetails(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Voir profil
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCandidate(candidate);
+                          setShowDetails(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Voir profil
+                      </Button>
+                      {candidate.schedule_validated && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                          onClick={() => handleFollowSessions(candidate)}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          Suivre les séances
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -263,6 +334,20 @@ export const RegisteredCandidates = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de suivi des séances */}
+      {selectedApplication && (
+        <SessionDetailsDialog
+          open={showSessionDetails}
+          onOpenChange={setShowSessionDetails}
+          application={selectedApplication}
+          sessions={selectedApplication.proposed_schedule?.sessions || []}
+          followUpSessions={selectedApplication.proposed_schedule?.followUpSessions || []}
+          getStatusBadge={getStatusBadge}
+          getCompletionPercentage={getCompletionPercentage}
+          updateSessionStatus={updateSessionStatus}
+        />
+      )}
     </div>
   );
 };

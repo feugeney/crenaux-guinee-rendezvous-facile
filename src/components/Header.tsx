@@ -1,86 +1,53 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useMediaQuery } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Button } from './ui/button';
+import { Calendar, Phone, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-
-  const navLinks = [
-    { href: '/', label: 'Accueil' },
-    { href: '/shop', label: 'Nos offres' },
-    { href: '/admin', label: 'Admin' }
-  ];
-
-  const renderNavLinks = () => (
-    <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8">
-      {navLinks.map((link) => (
-        <li key={link.href}>
-          <Link 
-            to={link.href} 
-            className={`text-gray-700 hover:text-gold-800 font-medium text-sm ${
-              location.pathname === link.href ? 'text-gold-800 font-semibold' : ''
-            }`}
-          >
-            {link.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  const navigate = useNavigate();
 
   return (
-    <header className="py-1 border-b border-gray-100 bg-white">
-      <div className="container flex justify-between items-center">
-        <Link to="/" className="flex items-center">
-          <img 
-            src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
-            alt="Domani Doré Logo" 
-            className="h-12 w-auto" 
-          />
-          <span className="ml-3 text-xs text-gray-600">
-            Ici, commence ton ascension politique et professionnelle
-          </span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        {!isMobile && (
-          <nav className="flex-1 flex justify-center">
-            {renderNavLinks()}
+    <header className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-8 w-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-900">ConsultPro</span>
+            </div>
+          </div>
+          
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#services" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Services
+            </a>
+            <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
+              À propos
+            </a>
+            <a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Contact
+            </a>
           </nav>
-        )}
-
-        <div className="flex items-center gap-2">
-          {/* Mobile Menu */}
-          {isMobile && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="h-4 w-4" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[260px]">
-                <div className="py-6">
-                  <Link to="/" className="flex items-center mb-6">
-                    <img 
-                      src="/lovable-uploads/c6033619-b5e0-4be0-95e1-f9af4d96470c.png" 
-                      alt="Domani Doré Logo"
-                      className="h-12 w-auto"
-                    />
-                  </Link>
-                  <nav className="flex flex-col gap-4">
-                    {renderNavLinks()}
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
+          
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/admin')}
+              className="hidden md:flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Admin
+            </Button>
+            <Button
+              onClick={() => navigate('/booking')}
+              className="flex items-center space-x-2"
+            >
+              <Phone className="h-4 w-4" />
+              <span>Réserver</span>
+            </Button>
+          </div>
         </div>
       </div>
     </header>

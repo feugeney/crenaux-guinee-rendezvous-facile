@@ -9,11 +9,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock, Calendar, Plus, Trash2, CreditCard, Briefcase } from 'lucide-react';
+import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock, Calendar, Plus, Trash2, CreditCard, Briefcase, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface PoliticalApplication {
   id: string;
@@ -29,6 +30,11 @@ interface PoliticalApplication {
   start_period: string;
   why_collaboration: string;
   desired_transformation: string;
+  proposed_schedule?: any;
+  schedule_validated?: boolean;
+  payment_confirmed_at?: string;
+  payment_link?: string;
+  stripe_session_id?: string;
 }
 
 interface SessionSchedule {
@@ -39,6 +45,12 @@ interface SessionSchedule {
   topic: string;
 }
 
+interface NewTimeSlot {
+  date?: Date;
+  start_time: string;
+  end_time: string;
+}
+
 export const PoliticalApplications = () => {
   const [applications, setApplications] = useState<PoliticalApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +58,15 @@ export const PoliticalApplications = () => {
   const [selectedApplication, setSelectedApplication] = useState<PoliticalApplication | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showPlanningView, setShowPlanningView] = useState(false);
   const [sessions, setSessions] = useState<SessionSchedule[]>([]);
   const [followUpSessions, setFollowUpSessions] = useState<SessionSchedule[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [newTimeSlot, setNewTimeSlot] = useState<NewTimeSlot>({
+    start_time: '',
+    end_time: ''
+  });
+  const [showNewSlotForm, setShowNewSlotForm] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -100,6 +118,15 @@ export const PoliticalApplications = () => {
     setShowScheduleDialog(true);
   };
 
+  const handleViewPlanning = (application: PoliticalApplication) => {
+    setSelectedApplication(application);
+    if (application.proposed_schedule) {
+      setSessions(application.proposed_schedule.sessions || []);
+      setFollowUpSessions(application.proposed_schedule.followUpSessions || []);
+    }
+    setShowPlanningView(true);
+  };
+
   const updateSession = (index: number, field: keyof SessionSchedule, value: string, isFollowUp = false) => {
     if (isFollowUp) {
       setFollowUpSessions(prev => prev.map((session, i) => 
@@ -148,6 +175,26 @@ export const PoliticalApplications = () => {
     }
   };
 
+  const handleAddTimeSlot = () => {
+    if (!newTimeSlot.date || !newTimeSlot.start_time || !newTimeSlot.end_time) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+
+    const newSession: SessionSchedule = {
+      session_number: sessions.length + followUpSessions.length + 1,
+      date: format(newTimeSlot.date, 'yyyy-MM-dd'),
+      start_time: newTimeSlot.start_time,
+      end_time: newTimeSlot.end_time,
+      topic: 'Nouveau créneau'
+    };
+
+    setSessions(prev => [...prev, newSession]);
+    setNewTimeSlot({ start_time: '', end_time: '' });
+    setShowNewSlotForm(false);
+    toast.success('Nouveau créneau ajouté');
+  };
+
   const getPaymentAmount = (application: PoliticalApplication) => {
     return application.payment_option === 'full' ? '600 USD' : '250 USD/mois';
   };
@@ -177,6 +224,8 @@ export const PoliticalApplications = () => {
         return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rejeté</Badge>;
+      case 'paid':
+        return <Badge className="bg-blue-100 text-blue-800">Payé</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -214,6 +263,7 @@ export const PoliticalApplications = () => {
                 <SelectItem value="all">Toutes les candidatures</SelectItem>
                 <SelectItem value="pending">En attente</SelectItem>
                 <SelectItem value="approved">Approuvées</SelectItem>
+                <SelectItem value="paid">Payées</SelectItem>
                 <SelectItem value="rejected">Rejetées</SelectItem>
               </SelectContent>
             </Select>
@@ -373,6 +423,17 @@ export const PoliticalApplications = () => {
                           </Button>
                         </>
                       )}
+                      {(application.status === 'approved' || application.status === 'paid') && application.schedule_validated && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewPlanning(application)}
+                          className="text-blue-600 hover:bg-blue-50"
+                        >
+                          <Calendar className="h-4 w-4 mr-1" />
+                          Voir Planning
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -382,7 +443,220 @@ export const PoliticalApplications = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog de planification */}
+      {/* Dialog de vue du planning */}
+      <Dialog open={showPlanningView} onOpenChange={setShowPlanningView}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Planning - {selectedApplication?.full_name}</DialogTitle>
+            <DialogDescription>
+              Planning des séances approuvées
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Informations de la candidature */}
+          {selectedApplication && (
+            <Card className="mb-6 bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Informations de la candidature
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Nom complet</p>
+                      <p className="font-medium">{selectedApplication.full_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Fonction</p>
+                      <p className="font-medium">{selectedApplication.professional_profile}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Montant à payer</p>
+                      <p className="font-medium text-green-600">{getPaymentAmount(selectedApplication)}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Statut du paiement et lien */}
+                {selectedApplication.status === 'approved' && !selectedApplication.payment_confirmed_at && selectedApplication.payment_link && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-yellow-600" />
+                      <span className="font-medium text-yellow-800">En attente de paiement</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <LinkIcon className="h-4 w-4 text-blue-600" />
+                      <a href={selectedApplication.payment_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        Lien de paiement envoyé au client
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedApplication.status === 'paid' && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="font-medium text-green-800">Paiement confirmé</span>
+                    </div>
+                    {selectedApplication.payment_confirmed_at && (
+                      <p className="text-sm text-green-600 mt-1">
+                        Payé le {format(new Date(selectedApplication.payment_confirmed_at), 'PPP', { locale: fr })}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Séances intensives */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Séances intensives ({sessions.length} séances)
+                </h3>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowNewSlotForm(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouveau créneau
+                </Button>
+              </div>
+              
+              {/* Formulaire nouveau créneau */}
+              {showNewSlotForm && (
+                <Card className="mb-4 p-4 border-blue-200">
+                  <h4 className="font-medium mb-3">Nouveau créneau</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label>Date</Label>
+                      <DatePicker 
+                        date={newTimeSlot.date}
+                        setDate={(date) => setNewTimeSlot(prev => ({ ...prev, date }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Heure de début</Label>
+                        <Input
+                          type="time"
+                          value={newTimeSlot.start_time}
+                          onChange={(e) => setNewTimeSlot(prev => ({ ...prev, start_time: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure de fin</Label>
+                        <Input
+                          type="time"
+                          value={newTimeSlot.end_time}
+                          onChange={(e) => setNewTimeSlot(prev => ({ ...prev, end_time: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleAddTimeSlot}>
+                        Créer
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setShowNewSlotForm(false);
+                          setNewTimeSlot({ start_time: '', end_time: '' });
+                        }}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+              
+              <div className="space-y-4">
+                {sessions.map((session, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="grid grid-cols-1 gap-2">
+                      <div>
+                        <Label>Séance {session.session_number}</Label>
+                        <p className="text-sm text-gray-600">{session.topic}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <strong>Date:</strong> {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Non définie'}
+                        </div>
+                        <div>
+                          <strong>Début:</strong> {session.start_time}
+                        </div>
+                        <div>
+                          <strong>Fin:</strong> {session.end_time}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Suivi post-coaching */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Suivi post-coaching ({followUpSessions.length} semaines)
+              </h3>
+              <div className="space-y-4">
+                {followUpSessions.map((session, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="grid grid-cols-1 gap-2">
+                      <div>
+                        <Label>Semaine {session.session_number}</Label>
+                        <p className="text-sm text-gray-600">{session.topic}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <strong>Date:</strong> {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Non définie'}
+                        </div>
+                        <div>
+                          <strong>Début:</strong> {session.start_time}
+                        </div>
+                        <div>
+                          <strong>Fin:</strong> {session.end_time}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPlanningView(false)}
+              className="flex-1"
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de planification - gardé inchangé */}
       <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
         <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

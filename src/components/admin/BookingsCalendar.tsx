@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import UpcomingBookings from './UpcomingBookings';
+import { UpcomingBookings } from './UpcomingBookings';
 import AdminBookingsMiniCalendar from './AdminBookingsMiniCalendar';
 import { supabase } from '@/lib/supabase';
 

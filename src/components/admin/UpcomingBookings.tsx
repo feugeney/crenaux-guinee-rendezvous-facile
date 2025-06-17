@@ -26,7 +26,11 @@ interface UpcomingBooking {
   is_priority: boolean;
 }
 
-export const UpcomingBookings = () => {
+interface UpcomingBookingsProps {
+  selectedDate?: string | null;
+}
+
+export const UpcomingBookings = ({ selectedDate }: UpcomingBookingsProps) => {
   const [bookings, setBookings] = useState<UpcomingBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,7 +79,9 @@ export const UpcomingBookings = () => {
       (filterType === 'express' && booking.is_priority) ||
       (filterType === 'standard' && !booking.is_priority);
 
-    return matchesSearch && matchesFilter;
+    const matchesDate = !selectedDate || booking.date === selectedDate;
+
+    return matchesSearch && matchesFilter && matchesDate;
   });
 
   if (loading) {
@@ -86,8 +92,12 @@ export const UpcomingBookings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Rendez-vous à venir</h2>
-          <p className="text-muted-foreground">Tous les rendez-vous validés programmés</p>
+          <h2 className="text-2xl font-bold tracking-tight">
+            {selectedDate ? `Rendez-vous du ${format(new Date(selectedDate), 'PPP', { locale: fr })}` : 'Rendez-vous à venir'}
+          </h2>
+          <p className="text-muted-foreground">
+            {selectedDate ? 'Rendez-vous programmés pour la date sélectionnée' : 'Tous les rendez-vous validés programmés'}
+          </p>
         </div>
       </div>
 
@@ -138,8 +148,10 @@ export const UpcomingBookings = () => {
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-blue-500" />
               <div>
-                <p className="text-sm font-medium">Total à venir</p>
-                <p className="text-2xl font-bold">{bookings.length}</p>
+                <p className="text-sm font-medium">
+                  {selectedDate ? 'Total ce jour' : 'Total à venir'}
+                </p>
+                <p className="text-2xl font-bold">{filteredBookings.length}</p>
               </div>
             </div>
           </CardContent>
@@ -151,7 +163,7 @@ export const UpcomingBookings = () => {
               <Clock className="h-5 w-5 text-red-500" />
               <div>
                 <p className="text-sm font-medium">Express</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => b.is_priority).length}</p>
+                <p className="text-2xl font-bold">{filteredBookings.filter(b => b.is_priority).length}</p>
               </div>
             </div>
           </CardContent>
@@ -163,7 +175,7 @@ export const UpcomingBookings = () => {
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
                 <p className="text-sm font-medium">Standard</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => !b.is_priority).length}</p>
+                <p className="text-2xl font-bold">{filteredBookings.filter(b => !b.is_priority).length}</p>
               </div>
             </div>
           </CardContent>

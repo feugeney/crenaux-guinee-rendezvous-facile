@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Calendar, Clock, CheckCircle, Phone, Mail } from 'lucide-react';
+import { User, Calendar, Clock, CheckCircle, Phone, Mail, Play, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, parseISO, isBefore, isAfter } from 'date-fns';
+import { format, parseISO, isBefore, isAfter, isToday, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface PaidApplication {
@@ -97,15 +97,90 @@ export const SessionTracking = () => {
     setShowSessionDetails(true);
   };
 
-  const updateSessionStatus = (index: number, completed: boolean, isFollowUp = false) => {
-    if (isFollowUp) {
-      setFollowUpSessions(prev => prev.map((session, i) => 
-        i === index ? { ...session, completed } : session
+  const updateSessionStatus = async (sessionIndex: number, completed: boolean, isFollowUp = false) => {
+    if (!selectedApplication) return;
+
+    try {
+      const updatedSchedule = { ...selectedApplication.proposed_schedule };
+      
+      if (isFollowUp) {
+        updatedSchedule.followUpSessions[sessionIndex].completed = completed;
+        setFollowUpSessions(prev => prev.map((session, i) => 
+          i === sessionIndex ? { ...session, completed } : session
+        ));
+      } else {
+        updatedSchedule.sessions[sessionIndex].completed = completed;
+        setSessions(prev => prev.map((session, i) => 
+          i === sessionIndex ? { ...session, completed } : session
+        ));
+      }
+
+      // Mettre à jour dans la base de données
+      const { error } = await supabase
+        .from('political_launch_applications')
+        .update({ proposed_schedule: updatedSchedule })
+        .eq('id', selectedApplication.id);
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
+      setPaidApplications(prev => prev.map(app => 
+        app.id === selectedApplication.id 
+          ? { ...app, proposed_schedule: updatedSchedule }
+          : app
       ));
+
+      setSelectedApplication(prev => prev ? { ...prev, proposed_schedule: updatedSchedule } : null);
+      
+      toast.success('Statut de la séance mis à jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      toast.error('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const getSessionStatusAndColor = (session: SessionSchedule) => {
+    const now = new Date();
+    const sessionDate = parseISO(session.date);
+    const today = startOfDay(now);
+    const sessionDay = startOfDay(sessionDate);
+    
+    if (session.completed) {
+      return {
+        color: 'bg-green-100 border-green-300 text-green-800',
+        icon: <Check className="h-4 w-4 text-green-600" />,
+        status: 'Terminée'
+      };
+    } else if (isBefore(sessionDay, today)) {
+      return {
+        color: 'bg-red-100 border-red-300 text-red-800',
+        icon: <Clock className="h-4 w-4 text-red-600" />,
+        status: 'En retard'
+      };
+    } else if (isToday(sessionDate)) {
+      return {
+        color: 'bg-orange-100 border-orange-300 text-orange-800',
+        icon: <Play className="h-4 w-4 text-orange-600" />,
+        status: "Aujourd'hui"
+      };
     } else {
-      setSessions(prev => prev.map((session, i) => 
-        i === index ? { ...session, completed } : session
-      ));
+      // Vérifier si c'est la prochaine séance non terminée
+      const allSessions = [...sessions, ...followUpSessions]
+        .filter(s => !s.completed)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const nextSession = allSessions[0];
+      const isNextSession = nextSession && nextSession.date === session.date && nextSession.session_number === session.session_number;
+      
+      return {
+        color: isNextSession 
+          ? 'bg-blue-100 border-blue-300 text-blue-800' 
+          : 'bg-gray-100 border-gray-300 text-gray-600',
+        icon: isNextSession 
+          ? <Calendar className="h-4 w-4 text-blue-600" />
+          : <Calendar className="h-4 w-4 text-gray-500" />,
+        status: isNextSession ? 'Prochaine séance' : 'Programmée'
+      };
     }
   };
 
@@ -135,17 +210,6 @@ export const SessionTracking = () => {
       return <Badge className="bg-yellow-100 text-yellow-800">En attente de paiement</Badge>;
     } else {
       return <Badge className="bg-purple-100 text-purple-800">Planning validé</Badge>;
-    }
-  };
-
-  const getSessionStatusColor = (session: SessionSchedule) => {
-    const now = new Date();
-    const sessionDate = parseISO(session.date);
-    
-    if (isBefore(sessionDate, now)) {
-      return 'bg-red-50 border-red-200'; // Sessions passées en rouge
-    } else {
-      return 'bg-green-50 border-green-200'; // Sessions à venir en vert
     }
   };
 
@@ -295,7 +359,7 @@ export const SessionTracking = () => {
                         onClick={() => handleViewSessions(application)}
                       >
                         <Calendar className="h-4 w-4 mr-1" />
-                        Voir Séances
+                        Voir Planning
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -306,13 +370,16 @@ export const SessionTracking = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog de suivi des séances */}
+      {/* Dialog de suivi des séances - Format planning */}
       <Dialog open={showSessionDetails} onOpenChange={setShowSessionDetails}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Suivi des séances - {selectedApplication?.full_name}</DialogTitle>
+            <DialogTitle>Planning des séances - {selectedApplication?.full_name}</DialogTitle>
             <DialogDescription>
-              Gérez et suivez l'évolution des séances (Rouge = passées, Vert = à venir)
+              Gérez et suivez l'évolution des séances 
+              <span className="ml-2 text-xs">
+                🔴 Passées | 🟠 Aujourd'hui | 🔵 Prochaine | ⚪ Programmées | ✅ Terminées
+              </span>
             </DialogDescription>
           </DialogHeader>
           
@@ -321,7 +388,7 @@ export const SessionTracking = () => {
               {/* Informations candidat */}
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Candidat</p>
                       <p className="font-medium">{selectedApplication.full_name}</p>
@@ -334,41 +401,62 @@ export const SessionTracking = () => {
                       <p className="text-sm text-gray-500">Progression</p>
                       <p className="font-medium">{getCompletionPercentage(selectedApplication)}% terminé</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Statut</p>
+                      {getStatusBadge(selectedApplication)}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Planning des séances - Format calendrier */}
+              <div className="space-y-6">
                 {/* Séances intensives */}
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     Séances intensives ({sessions.length} séances)
                   </h3>
-                  <div className="space-y-3">
-                    {sessions.map((session, index) => (
-                      <Card key={index} className={`p-4 ${getSessionStatusColor(session)} ${session.completed ? 'ring-2 ring-blue-500' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-medium">Séance {session.session_number}</span>
-                              {session.completed && <CheckCircle className="h-4 w-4 text-blue-600" />}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {sessions.map((session, index) => {
+                      const statusInfo = getSessionStatusAndColor(session);
+                      return (
+                        <Card key={index} className={`p-4 border-2 transition-all hover:shadow-md ${statusInfo.color}`}>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {statusInfo.icon}
+                                <span className="font-semibold">Séance {session.session_number}</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                {statusInfo.status}
+                              </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 mb-1">{session.topic}</p>
-                            <div className="text-xs text-gray-500">
-                              {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Date non définie'} • {session.start_time} - {session.end_time}
+                            
+                            <div className="space-y-1">
+                              <p className="font-medium text-sm">{session.topic}</p>
+                              <div className="text-xs text-gray-600">
+                                📅 {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Date non définie'}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                ⏰ {session.start_time} - {session.end_time}
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-1">
+                              <Button
+                                variant={session.completed ? "default" : "outline"}
+                                size="sm"
+                                className="flex-1 text-xs h-8"
+                                onClick={() => updateSessionStatus(index, !session.completed)}
+                              >
+                                {session.completed ? '✅ Terminée' : '⏸️ Marquer terminée'}
+                              </Button>
                             </div>
                           </div>
-                          <Button
-                            variant={session.completed ? "outline" : "default"}
-                            size="sm"
-                            onClick={() => updateSessionStatus(index, !session.completed)}
-                          >
-                            {session.completed ? 'Marquer non terminée' : 'Marquer terminée'}
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -378,30 +466,46 @@ export const SessionTracking = () => {
                     <Clock className="h-5 w-5" />
                     Suivi post-coaching ({followUpSessions.length} semaines)
                   </h3>
-                  <div className="space-y-3">
-                    {followUpSessions.map((session, index) => (
-                      <Card key={index} className={`p-4 ${getSessionStatusColor(session)} ${session.completed ? 'ring-2 ring-blue-500' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-medium">Semaine {session.session_number}</span>
-                              {session.completed && <CheckCircle className="h-4 w-4 text-blue-600" />}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {followUpSessions.map((session, index) => {
+                      const statusInfo = getSessionStatusAndColor(session);
+                      return (
+                        <Card key={index} className={`p-4 border-2 transition-all hover:shadow-md ${statusInfo.color}`}>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {statusInfo.icon}
+                                <span className="font-semibold">Semaine {session.session_number}</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                {statusInfo.status}
+                              </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 mb-1">{session.topic}</p>
-                            <div className="text-xs text-gray-500">
-                              {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Date non définie'} • {session.start_time} - {session.end_time}
+                            
+                            <div className="space-y-1">
+                              <p className="font-medium text-sm">{session.topic}</p>
+                              <div className="text-xs text-gray-600">
+                                📅 {session.date ? format(new Date(session.date), 'PPP', { locale: fr }) : 'Date non définie'}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                ⏰ {session.start_time} - {session.end_time}
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-1">
+                              <Button
+                                variant={session.completed ? "default" : "outline"}
+                                size="sm"
+                                className="flex-1 text-xs h-8"
+                                onClick={() => updateSessionStatus(index, !session.completed, true)}
+                              >
+                                {session.completed ? '✅ Terminée' : '⏸️ Marquer terminée'}
+                              </Button>
                             </div>
                           </div>
-                          <Button
-                            variant={session.completed ? "outline" : "default"}
-                            size="sm"
-                            onClick={() => updateSessionStatus(index, !session.completed, true)}
-                          >
-                            {session.completed ? 'Marquer non terminée' : 'Marquer terminée'}
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

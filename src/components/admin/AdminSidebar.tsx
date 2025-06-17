@@ -98,7 +98,10 @@ export const AdminSidebar = () => {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton 
+                    asChild
+                    tooltip={sidebarState === 'collapsed' ? item.title : undefined}
+                  >
                     <NavLink 
                       to={item.url} 
                       className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}

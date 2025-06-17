@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { SidebarInset } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminOverview } from './AdminOverview';
 import { TimeSlotManagement } from './TimeSlotManagement';
 import { BookingManagement } from './BookingManagement';
@@ -12,6 +12,10 @@ import { AdminSettings } from './AdminSettings';
 export const AdminContent = () => {
   return (
     <SidebarInset className="flex-1">
+      <div className="flex items-center gap-2 p-4 border-b">
+        <SidebarTrigger />
+        <h1 className="text-lg font-semibold">Administration</h1>
+      </div>
       <div className="p-6">
         <Routes>
           <Route index element={<AdminOverview />} />

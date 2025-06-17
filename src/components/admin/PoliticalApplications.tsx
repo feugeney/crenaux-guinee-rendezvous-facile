@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -221,7 +222,7 @@ export const PoliticalApplications = () => {
       </Card>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -249,10 +250,10 @@ export const PoliticalApplications = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <XCircle className="h-5 w-5 text-red-500" />
+              <CreditCard className="h-5 w-5 text-blue-500" />
               <div>
-                <p className="text-sm font-medium">Rejetées</p>
-                <p className="text-2xl font-bold">{applications.filter(a => a.status === 'rejected').length}</p>
+                <p className="text-sm font-medium">Attente paiement</p>
+                <p className="text-2xl font-bold">{applications.filter(a => a.status === 'approved' && a.schedule_validated && !a.payment_confirmed_at).length}</p>
               </div>
             </div>
           </CardContent>
@@ -261,10 +262,22 @@ export const PoliticalApplications = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-blue-500" />
+              <Calendar className="h-5 w-5 text-purple-500" />
               <div>
-                <p className="text-sm font-medium">Total</p>
-                <p className="text-2xl font-bold">{applications.length}</p>
+                <p className="text-sm font-medium">Payées</p>
+                <p className="text-2xl font-bold">{applications.filter(a => a.status === 'paid').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-sm font-medium">Rejetées</p>
+                <p className="text-2xl font-bold">{applications.filter(a => a.status === 'rejected').length}</p>
               </div>
             </div>
           </CardContent>

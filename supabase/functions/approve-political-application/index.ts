@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     // Calculer le prix selon l'option de paiement
-    const price = application.payment_option === 'full' ? 600 : 250; // 600 USD complet, 250 USD mensuel
+    const price = application.payment_option === 'full' ? 600 : 250;
 
     // Initialiser Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -76,7 +76,7 @@ serve(async (req) => {
       customerId = newCustomer.id;
     }
 
-    // Créer le lien de paiement Stripe
+    // Créer le lien de paiement Stripe avec URL de retour
     const origin = req.headers.get('origin') || 'http://localhost:5173';
     let paymentLink;
 
@@ -96,7 +96,7 @@ serve(async (req) => {
           quantity: 1,
         }],
         mode: "payment",
-        success_url: `${origin}/political-launch-success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}/political-launch-success?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancel_url: `${origin}/political-launch?canceled=true`,
         metadata: {
           application_id: applicationId,
@@ -121,7 +121,7 @@ serve(async (req) => {
           quantity: 1,
         }],
         mode: "subscription",
-        success_url: `${origin}/political-launch-success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}/political-launch-success?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancel_url: `${origin}/political-launch?canceled=true`,
         metadata: {
           application_id: applicationId,
@@ -131,7 +131,7 @@ serve(async (req) => {
       paymentLink = session.url;
     }
 
-    // Mettre à jour la candidature avec le planning et le lien de paiement
+    // Mettre à jour la candidature avec statut "approved" et "en attente de paiement"
     const { error: updateError } = await supabase
       .from('political_launch_applications')
       .update({
@@ -149,11 +149,11 @@ serve(async (req) => {
 
     // Préparer le contenu de l'email
     const sessionsHtml = proposedSchedule.sessions.map(session => 
-      `<li>Séance ${session.session_number}: ${new Date(session.date).toLocaleDateString('fr-FR')} de ${session.start_time} à ${session.end_time} - ${session.topic}</li>`
+      `<li>Séance intensive ${session.session_number}: ${new Date(session.date).toLocaleDateString('fr-FR')} de ${session.start_time} à ${session.end_time} - ${session.topic}</li>`
     ).join('');
 
     const followUpHtml = proposedSchedule.followUpSessions.map(session => 
-      `<li>Suivi ${session.session_number}: ${new Date(session.date).toLocaleDateString('fr-FR')} de ${session.start_time} à ${session.end_time} - ${session.topic}</li>`
+      `<li>Suivi post-coaching ${session.session_number}: ${new Date(session.date).toLocaleDateString('fr-FR')} de ${session.start_time} à ${session.end_time} - ${session.topic}</li>`
     ).join('');
 
     const emailHtml = `
@@ -189,12 +189,12 @@ serve(async (req) => {
       <p>Votre candidature pour le programme d'accompagnement politique a été approuvée. Nous sommes ravis de vous accompagner dans votre parcours politique.</p>
       
       <div class="schedule">
-        <h3>📅 Planning des 6 séances principales :</h3>
+        <h3>📅 Planning des 6 séances intensives :</h3>
         <ul>${sessionsHtml}</ul>
       </div>
       
       <div class="schedule">
-        <h3>📞 Séances de suivi (2 semaines) :</h3>
+        <h3>📞 Séances de suivi post-coaching (2 semaines) :</h3>
         <ul>${followUpHtml}</ul>
       </div>
       
@@ -245,7 +245,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Candidature approuvée et email envoyé",
+        message: "Candidature approuvée et email envoyé. En attente de paiement.",
         payment_link: paymentLink
       }),
       {

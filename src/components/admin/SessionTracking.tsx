@@ -24,7 +24,7 @@ interface PaidApplication {
   payment_option: string;
   start_period: string;
   proposed_schedule: any;
-  payment_confirmed_at: string;
+  payment_confirmed_at: string | null;
   stripe_session_id?: string;
 }
 
@@ -56,14 +56,26 @@ export const SessionTracking = () => {
         .from('political_launch_applications')
         .select('*')
         .eq('status', 'paid')
-        .order('payment_confirmed_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Filter and map the data to ensure it matches our interface
       const mappedData: PaidApplication[] = (data || []).map(app => ({
-        ...app,
-        payment_confirmed_at: app.payment_confirmed_at || new Date().toISOString()
+        id: app.id,
+        full_name: app.full_name,
+        email: app.email,
+        phone: app.phone,
+        professional_profile: app.professional_profile,
+        city_country: app.city_country,
+        preferred_topic: app.preferred_topic,
+        status: app.status,
+        created_at: app.created_at,
+        payment_option: app.payment_option,
+        start_period: app.start_period,
+        proposed_schedule: app.proposed_schedule,
+        payment_confirmed_at: app.payment_confirmed_at || new Date().toISOString(),
+        stripe_session_id: app.stripe_session_id
       }));
 
       setPaidApplications(mappedData);
@@ -239,7 +251,7 @@ export const SessionTracking = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {format(new Date(application.payment_confirmed_at), 'PPP', { locale: fr })}
+                      {application.payment_confirmed_at && format(new Date(application.payment_confirmed_at), 'PPP', { locale: fr })}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">

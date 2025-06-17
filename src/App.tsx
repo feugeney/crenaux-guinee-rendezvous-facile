@@ -17,17 +17,17 @@ import PoliticalLaunchForm from './pages/PoliticalLaunchForm';
 import PoliticalLaunchSuccess from './pages/PoliticalLaunchSuccess';
 import Admin from './pages/Admin';
 
-// Create QueryClient outside of component to avoid hook issues
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 function App() {
+  // Create QueryClient inside component to avoid hook issues
+  const queryClient = React.useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>

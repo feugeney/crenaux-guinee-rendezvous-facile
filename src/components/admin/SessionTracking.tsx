@@ -25,7 +25,7 @@ interface PaidApplication {
   start_period: string;
   proposed_schedule: any;
   payment_confirmed_at?: string;
-  stripe_session_id?: string;
+  payment_link?: string;
 }
 
 interface SessionSchedule {
@@ -76,7 +76,7 @@ export const SessionTracking = () => {
         start_period: app.start_period,
         proposed_schedule: app.proposed_schedule,
         payment_confirmed_at: app.created_at, // Utiliser created_at comme fallback
-        stripe_session_id: app.stripe_session_id || undefined
+        payment_link: app.payment_link || undefined
       }));
 
       setPaidApplications(mappedData);

@@ -7,7 +7,11 @@ import {
   Flag, 
   BarChart3, 
   Settings,
-  Home
+  Home,
+  Clock,
+  CalendarCheck,
+  Users,
+  UserPlus
 } from 'lucide-react';
 import {
   Sidebar,
@@ -18,9 +22,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from '@/components/ui/sidebar';
 
 const menuItems = [
@@ -37,12 +47,36 @@ const menuItems = [
   { 
     title: 'Gestion des réservations', 
     url: '/admin/bookings', 
-    icon: BookOpen 
+    icon: BookOpen,
+    submenu: [
+      {
+        title: 'Rendez-vous express',
+        url: '/admin/bookings/express',
+        icon: Clock
+      },
+      {
+        title: 'Rendez-vous standard',
+        url: '/admin/bookings/standard',
+        icon: CalendarCheck
+      }
+    ]
   },
   { 
     title: 'Programme politique', 
     url: '/admin/political-program', 
-    icon: Flag 
+    icon: Flag,
+    submenu: [
+      {
+        title: 'Gestion des candidatures',
+        url: '/admin/political-program/applications',
+        icon: UserPlus
+      },
+      {
+        title: 'Candidats inscrits',
+        url: '/admin/political-program/candidates',
+        icon: Users
+      }
+    ]
   },
   { 
     title: 'Rapports', 
@@ -66,6 +100,11 @@ export const AdminSidebar = () => {
       return currentPath === '/admin';
     }
     return currentPath.startsWith(path);
+  };
+
+  const hasActiveSubmenu = (item: any) => {
+    if (!item.submenu) return false;
+    return item.submenu.some((subItem: any) => isActive(subItem.url));
   };
 
   const getNavClass = (path: string) => {
@@ -98,20 +137,63 @@ export const AdminSidebar = () => {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild
-                    tooltip={sidebarState === 'collapsed' ? item.title : undefined}
-                  >
-                    <NavLink 
-                      to={item.url} 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}
-                    >
-                      <item.icon className="h-5 w-5" />
+                  {item.submenu ? (
+                    <Collapsible defaultOpen={hasActiveSubmenu(item)} className="group/collapsible">
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton 
+                          tooltip={sidebarState === 'collapsed' ? item.title : undefined}
+                          className={`${getNavClass(item.url)} w-full justify-between`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <item.icon className="h-5 w-5" />
+                            {sidebarState === 'expanded' && (
+                              <span>{item.title}</span>
+                            )}
+                          </div>
+                          {sidebarState === 'expanded' && (
+                            <svg className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" 
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          )}
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
                       {sidebarState === 'expanded' && (
-                        <span>{item.title}</span>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {item.submenu.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild>
+                                  <NavLink 
+                                    to={subItem.url} 
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ml-4 ${getNavClass(subItem.url)}`}
+                                  >
+                                    <subItem.icon className="h-4 w-4" />
+                                    <span>{subItem.title}</span>
+                                  </NavLink>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
                       )}
-                    </NavLink>
-                  </SidebarMenuButton>
+                    </Collapsible>
+                  ) : (
+                    <SidebarMenuButton 
+                      asChild
+                      tooltip={sidebarState === 'collapsed' ? item.title : undefined}
+                    >
+                      <NavLink 
+                        to={item.url} 
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {sidebarState === 'expanded' && (
+                          <span>{item.title}</span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

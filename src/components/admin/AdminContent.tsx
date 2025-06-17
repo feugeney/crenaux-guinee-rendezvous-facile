@@ -8,6 +8,10 @@ import { BookingManagement } from './BookingManagement';
 import { PoliticalProgramManagement } from './PoliticalProgramManagement';
 import { AdminReports } from './AdminReports';
 import { AdminSettings } from './AdminSettings';
+import { ExpressBookings } from './ExpressBookings';
+import { StandardBookings } from './StandardBookings';
+import { PoliticalApplications } from './PoliticalApplications';
+import { RegisteredCandidates } from './RegisteredCandidates';
 
 export const AdminContent = () => {
   return (
@@ -21,7 +25,11 @@ export const AdminContent = () => {
           <Route index element={<AdminOverview />} />
           <Route path="time-slots" element={<TimeSlotManagement />} />
           <Route path="bookings" element={<BookingManagement />} />
+          <Route path="bookings/express" element={<ExpressBookings />} />
+          <Route path="bookings/standard" element={<StandardBookings />} />
           <Route path="political-program" element={<PoliticalProgramManagement />} />
+          <Route path="political-program/applications" element={<PoliticalApplications />} />
+          <Route path="political-program/candidates" element={<RegisteredCandidates />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="settings" element={<AdminSettings />} />
         </Routes>

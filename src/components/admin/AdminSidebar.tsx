@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, NavLink } from 'react-router-dom';
 import { 
@@ -13,7 +12,8 @@ import {
   Users,
   UserPlus,
   CheckCircle,
-  FileText
+  FileText,
+  CalendarDays
 } from 'lucide-react';
 import {
   Sidebar,
@@ -62,6 +62,11 @@ const menuItems = [
         title: 'Réservations Standard',
         url: '/admin/bookings/standard',
         icon: CalendarCheck
+      },
+      {
+        title: 'Rendez-vous à venir',
+        url: '/admin/bookings/upcoming',
+        icon: CalendarDays
       }
     ]
   },

@@ -2,27 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Clock, Edit, Trash2 } from 'lucide-react';
 import { fetchTimeSlots, createTimeSlot, updateTimeSlot, deleteTimeSlot } from '@/services/timeSlotService';
 import { TimeSlot } from '@/types';
 import { toast } from 'sonner';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import BulkTimeSlotCreator from './BulkTimeSlotCreator';
 
 export const TimeSlotManagement = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
-  const [formData, setFormData] = useState({
-    day_of_week: 1,
-    start_time: '',
-    end_time: '',
-    available: true,
-    is_recurring: true,
-    specific_date: null as string | null
-  });
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [available, setAvailable] = useState(true);
 
   useEffect(() => {
     loadTimeSlots();
@@ -42,12 +43,32 @@ export const TimeSlotManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!selectedDate) {
+      toast.error('Veuillez sélectionner une date');
+      return;
+    }
+
+    if (startTime === endTime) {
+      toast.error('Les heures de début et de fin doivent être différentes');
+      return;
+    }
+
     try {
+      const timeSlotData = {
+        day_of_week: selectedDate.getDay(),
+        start_time: startTime,
+        end_time: endTime,
+        available: available,
+        is_recurring: isRecurring,
+        specific_date: format(selectedDate, 'yyyy-MM-dd')
+      };
+
       if (editingSlot) {
-        await updateTimeSlot({ ...editingSlot, ...formData });
+        await updateTimeSlot({ ...editingSlot, ...timeSlotData });
         toast.success('Créneau mis à jour');
       } else {
-        await createTimeSlot(formData as TimeSlot);
+        await createTimeSlot(timeSlotData as TimeSlot);
         toast.success('Créneau créé');
       }
       
@@ -63,14 +84,13 @@ export const TimeSlotManagement = () => {
 
   const handleEdit = (slot: TimeSlot) => {
     setEditingSlot(slot);
-    setFormData({
-      day_of_week: slot.day_of_week,
-      start_time: slot.start_time,
-      end_time: slot.end_time,
-      available: slot.available,
-      is_recurring: slot.is_recurring,
-      specific_date: slot.specific_date
-    });
+    if (slot.specific_date) {
+      setSelectedDate(new Date(slot.specific_date));
+    }
+    setStartTime(slot.start_time);
+    setEndTime(slot.end_time);
+    setAvailable(slot.available);
+    setIsRecurring(slot.is_recurring);
     setShowForm(true);
   };
 
@@ -88,14 +108,11 @@ export const TimeSlotManagement = () => {
   };
 
   const resetForm = () => {
-    setFormData({
-      day_of_week: 1,
-      start_time: '',
-      end_time: '',
-      available: true,
-      is_recurring: true,
-      specific_date: null
-    });
+    setSelectedDate(undefined);
+    setStartTime('09:00');
+    setEndTime('10:00');
+    setAvailable(true);
+    setIsRecurring(false);
   };
 
   const getDayName = (dayOfWeek: number) => {
@@ -120,6 +137,9 @@ export const TimeSlotManagement = () => {
         </Button>
       </div>
 
+      {/* Créateur de créneaux en lot */}
+      <BulkTimeSlotCreator />
+
       {showForm && (
         <Card>
           <CardHeader>
@@ -129,54 +149,57 @@ export const TimeSlotManagement = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="day_of_week">Jour de la semaine</Label>
-                  <select
-                    id="day_of_week"
-                    value={formData.day_of_week}
-                    onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value={1}>Lundi</option>
-                    <option value={2}>Mardi</option>
-                    <option value={3}>Mercredi</option>
-                    <option value={4}>Jeudi</option>
-                    <option value={5}>Vendredi</option>
-                    <option value={6}>Samedi</option>
-                    <option value={0}>Dimanche</option>
-                  </select>
+                  <Label htmlFor="date">Date du créneau</Label>
+                  <DatePicker
+                    date={selectedDate}
+                    setDate={setSelectedDate}
+                    label=""
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_recurring"
+                    checked={isRecurring}
+                    onCheckedChange={setIsRecurring}
+                  />
+                  <Label htmlFor="is_recurring">Créneau récurrent</Label>
                 </div>
 
                 <div>
-                  <Label htmlFor="start_time">Heure de début</Label>
-                  <Input
-                    id="start_time"
-                    type="time"
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                    required
+                  <TimePicker
+                    value={startTime}
+                    onChange={setStartTime}
+                    label="Heure de début"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="end_time">Heure de fin</Label>
-                  <Input
-                    id="end_time"
-                    type="time"
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                    required
+                  <TimePicker
+                    value={endTime}
+                    onChange={setEndTime}
+                    label="Heure de fin"
                   />
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="available"
-                    checked={formData.available}
-                    onCheckedChange={(checked) => setFormData({ ...formData, available: checked })}
+                    checked={available}
+                    onCheckedChange={setAvailable}
                   />
                   <Label htmlFor="available">Disponible</Label>
                 </div>
               </div>
+
+              {selectedDate && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Créneau sélectionné :</strong> {format(selectedDate, 'PPP', { locale: fr })} de {startTime} à {endTime}
+                    {isRecurring && ' (récurrent)'}
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <Button type="submit" className="bg-gold-600 hover:bg-gold-700">
@@ -211,9 +234,12 @@ export const TimeSlotManagement = () => {
                 <div className="flex items-center gap-4">
                   <Clock className="h-5 w-5 text-gray-500" />
                   <div>
-                    <p className="font-medium">{getDayName(slot.day_of_week)}</p>
+                    <p className="font-medium">
+                      {slot.specific_date ? format(new Date(slot.specific_date), 'PPP', { locale: fr }) : getDayName(slot.day_of_week)}
+                    </p>
                     <p className="text-sm text-gray-500">
                       {slot.start_time} - {slot.end_time}
+                      {slot.is_recurring && ' (récurrent)'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

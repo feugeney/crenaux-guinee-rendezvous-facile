@@ -24,6 +24,7 @@ interface PaidApplication {
   payment_option: string;
   start_period: string;
   proposed_schedule: any;
+  schedule_validated?: boolean;
   payment_confirmed_at?: string;
   payment_link?: string;
 }
@@ -52,17 +53,30 @@ export const SessionTracking = () => {
 
   const fetchPaidApplications = async () => {
     try {
-      // Récupérer les candidatures validées (avec planning validé)
+      console.log('Récupération des candidatures avec planning validé...');
+      
+      // Récupérer TOUTES les candidatures avec planning validé
       const { data, error } = await supabase
         .from('political_launch_applications')
         .select('*')
         .eq('schedule_validated', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw error;
+      }
+
+      console.log('Candidatures récupérées:', data);
+
+      if (!data || data.length === 0) {
+        console.log('Aucune candidature avec planning validé trouvée');
+        setPaidApplications([]);
+        return;
+      }
 
       // Mapper les données pour correspondre à notre interface
-      const mappedData: PaidApplication[] = (data || []).map(app => ({
+      const mappedData: PaidApplication[] = data.map(app => ({
         id: app.id,
         full_name: app.full_name,
         email: app.email,
@@ -75,10 +89,12 @@ export const SessionTracking = () => {
         payment_option: app.payment_option,
         start_period: app.start_period,
         proposed_schedule: app.proposed_schedule,
-        payment_confirmed_at: app.created_at, // Utiliser created_at comme fallback
+        schedule_validated: app.schedule_validated,
+        payment_confirmed_at: app.payment_confirmed_at || app.created_at,
         payment_link: app.payment_link || undefined
       }));
 
+      console.log('Candidatures mappées:', mappedData);
       setPaidApplications(mappedData);
     } catch (error) {
       console.error('Erreur lors du chargement des candidatures validées:', error);
@@ -89,10 +105,16 @@ export const SessionTracking = () => {
   };
 
   const handleViewSessions = (application: PaidApplication) => {
+    console.log('Visualisation des séances pour:', application.full_name);
+    console.log('Planning proposé:', application.proposed_schedule);
+    
     setSelectedApplication(application);
     if (application.proposed_schedule) {
       setSessions(application.proposed_schedule.sessions || []);
       setFollowUpSessions(application.proposed_schedule.followUpSessions || []);
+    } else {
+      setSessions([]);
+      setFollowUpSessions([]);
     }
     setShowSessionDetails(true);
   };
@@ -192,6 +214,8 @@ export const SessionTracking = () => {
       ...(application.proposed_schedule.followUpSessions || [])
     ];
     
+    if (allSessions.length === 0) return 0;
+    
     const completedSessions = allSessions.filter(session => session.completed);
     return Math.round((completedSessions.length / allSessions.length) * 100);
   };
@@ -208,8 +232,10 @@ export const SessionTracking = () => {
       }
     } else if (application.status === 'payment_pending') {
       return <Badge className="bg-yellow-100 text-yellow-800">En attente de paiement</Badge>;
-    } else {
+    } else if (application.status === 'approved') {
       return <Badge className="bg-purple-100 text-purple-800">Planning validé</Badge>;
+    } else {
+      return <Badge className="bg-gray-100 text-gray-800">{application.status}</Badge>;
     }
   };
 
@@ -278,7 +304,7 @@ export const SessionTracking = () => {
               <div>
                 <p className="text-sm font-medium">En attente paiement</p>
                 <p className="text-2xl font-bold">
-                  {paidApplications.filter(app => app.status === 'payment_pending').length}
+                  {paidApplications.filter(app => app.status === 'approved').length}
                 </p>
               </div>
             </div>
@@ -295,78 +321,86 @@ export const SessionTracking = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Candidat</TableHead>
-                <TableHead>Profil</TableHead>
-                <TableHead>Date création</TableHead>
-                <TableHead>Progression</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paidApplications.map((application) => {
-                const completionPercentage = getCompletionPercentage(application);
-                return (
-                  <TableRow key={application.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">{application.full_name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Mail className="h-3 w-3" />
-                          {application.email}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Phone className="h-3 w-3" />
-                          {application.phone}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{application.professional_profile}</p>
-                        <p className="text-sm text-gray-500">{application.city_country}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(application.created_at), 'PPP', { locale: fr })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                              style={{ width: `${completionPercentage}%` }}
-                            ></div>
+          {paidApplications.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Aucune candidature avec planning validé</p>
+              <p className="text-sm">Les candidatures apparaîtront ici après validation du planning</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Candidat</TableHead>
+                  <TableHead>Profil</TableHead>
+                  <TableHead>Date création</TableHead>
+                  <TableHead>Progression</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paidApplications.map((application) => {
+                  const completionPercentage = getCompletionPercentage(application);
+                  return (
+                    <TableRow key={application.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium">{application.full_name}</span>
                           </div>
-                          <span className="text-sm font-medium">{completionPercentage}%</span>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Mail className="h-3 w-3" />
+                            {application.email}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Phone className="h-3 w-3" />
+                            {application.phone}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(application)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewSessions(application)}
-                      >
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Voir Planning
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{application.professional_profile}</p>
+                          <p className="text-sm text-gray-500">{application.city_country}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(application.created_at), 'PPP', { locale: fr })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                style={{ width: `${completionPercentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium">{completionPercentage}%</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(application)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewSessions(application)}
+                        >
+                          <Calendar className="h-4 w-4 mr-1" />
+                          Voir Planning
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

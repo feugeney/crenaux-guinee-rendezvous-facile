@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +24,6 @@ interface PaidApplication {
   start_period: string;
   proposed_schedule: any;
   schedule_validated?: boolean;
-  payment_confirmed_at?: string;
   payment_link?: string;
 }
 
@@ -90,7 +88,6 @@ export const SessionTracking = () => {
         start_period: app.start_period,
         proposed_schedule: app.proposed_schedule,
         schedule_validated: app.schedule_validated,
-        payment_confirmed_at: app.payment_confirmed_at || app.created_at,
         payment_link: app.payment_link || undefined
       }));
 

@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, User, Mail, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { Calendar, Clock, User, Mail, CheckCircle, XCircle, Edit, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -107,7 +107,7 @@ export const ExpressBookings = () => {
           date: proposedDate,
           start_time: proposedStartTime,
           end_time: proposedEndTime,
-          payment_status: 'pending'
+          payment_status: 'proposed'
         })
         .eq('id', selectedBooking.id);
 
@@ -129,14 +129,20 @@ export const ExpressBookings = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Validé</Badge>;
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Validé</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800"><AlertCircle className="h-3 w-3 mr-1" />En attente</Badge>;
+      case 'proposed':
+        return <Badge className="bg-blue-100 text-blue-800"><Edit className="h-3 w-3 mr-1" />Date proposée</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">Rejeté</Badge>;
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejeté</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
+  };
+
+  const getUrgencyBadge = () => {
+    return <Badge className="bg-red-100 text-red-800 animate-pulse">EXPRESS</Badge>;
   };
 
   const filteredBookings = bookings.filter(booking => {
@@ -157,17 +163,17 @@ export const ExpressBookings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Validation des Rendez-vous Express</h2>
-          <p className="text-muted-foreground">Validez, rejetez ou proposez de nouvelles dates</p>
+          <h2 className="text-2xl font-bold tracking-tight text-red-600">🚨 Demandes de Rendez-vous Express</h2>
+          <p className="text-muted-foreground">Traitez rapidement les demandes urgentes</p>
         </div>
       </div>
 
       {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtres</CardTitle>
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50">
+          <CardTitle className="text-red-800">Filtres des demandes express</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Select value={filter} onValueChange={setFilter}>
@@ -175,17 +181,18 @@ export const ExpressBookings = () => {
                   <SelectValue placeholder="Filtrer par statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="completed">Validés</SelectItem>
-                  <SelectItem value="cancelled">Rejetés</SelectItem>
+                  <SelectItem value="all">Toutes les demandes</SelectItem>
+                  <SelectItem value="pending">⏳ En attente</SelectItem>
+                  <SelectItem value="proposed">📝 Date proposée</SelectItem>
+                  <SelectItem value="completed">✅ Validées</SelectItem>
+                  <SelectItem value="cancelled">❌ Rejetées</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
               <Input
-                placeholder="Rechercher..."
+                placeholder="Rechercher par nom, email ou sujet..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -196,74 +203,93 @@ export const ExpressBookings = () => {
                 setFilter('all');
                 setSearchTerm('');
               }}>
-                Réinitialiser
+                Réinitialiser les filtres
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+      {/* Statistiques d'urgence */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-yellow-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-yellow-500" />
+              <AlertCircle className="h-5 w-5 text-yellow-500 animate-pulse" />
               <div>
-                <p className="text-sm font-medium">En attente</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => b.payment_status === 'pending').length}</p>
+                <p className="text-sm font-medium">En attente urgent</p>
+                <p className="text-2xl font-bold text-yellow-600">{bookings.filter(b => b.payment_status === 'pending').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Edit className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Date proposée</p>
+                <p className="text-2xl font-bold text-blue-600">{bookings.filter(b => b.payment_status === 'proposed').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-green-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-sm font-medium">Validés</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => b.payment_status === 'completed').length}</p>
+                <p className="text-sm font-medium">Validées</p>
+                <p className="text-2xl font-bold text-green-600">{bookings.filter(b => b.payment_status === 'completed').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-red-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <XCircle className="h-5 w-5 text-red-500" />
               <div>
-                <p className="text-sm font-medium">Rejetés</p>
-                <p className="text-2xl font-bold">{bookings.filter(b => b.payment_status === 'cancelled').length}</p>
+                <p className="text-sm font-medium">Rejetées</p>
+                <p className="text-2xl font-bold text-red-600">{bookings.filter(b => b.payment_status === 'cancelled').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Table des rendez-vous */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Demandes de rendez-vous express</CardTitle>
+      {/* Table des demandes express */}
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50">
+          <CardTitle className="flex items-center gap-2 text-red-800">
+            <AlertCircle className="h-5 w-5 animate-pulse" />
+            Demandes de rendez-vous express
+          </CardTitle>
           <CardDescription>
-            {filteredBookings.length} demande(s) trouvée(s)
+            {filteredBookings.length} demande(s) express trouvée(s) - Traitement prioritaire requis
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Urgence</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Sujet</TableHead>
                 <TableHead>Date proposée</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Actions rapides</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredBookings.map((booking) => (
-                <TableRow key={booking.id}>
+                <TableRow key={booking.id} className="border-l-4 border-l-red-400">
+                  <TableCell>
+                    {getUrgencyBadge()}
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -278,7 +304,7 @@ export const ExpressBookings = () => {
                   </TableCell>
                   <TableCell>
                     <div className="max-w-xs">
-                      <p className="font-medium">{booking.topic}</p>
+                      <p className="font-medium text-red-700">{booking.topic}</p>
                       {booking.message && (
                         <p className="text-sm text-gray-500 truncate">{booking.message}</p>
                       )}
@@ -304,8 +330,8 @@ export const ExpressBookings = () => {
                       {booking.payment_status === 'pending' && (
                         <>
                           <Button
-                            variant="outline"
                             size="sm"
+                            className="bg-green-600 hover:bg-green-700"
                             onClick={() => handleValidateBooking(booking.id)}
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
@@ -316,6 +342,7 @@ export const ExpressBookings = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="border-blue-500 text-blue-600"
                                 onClick={() => {
                                   setSelectedBooking(booking);
                                   setProposedDate(booking.date);
@@ -331,7 +358,7 @@ export const ExpressBookings = () => {
                               <DialogHeader>
                                 <DialogTitle>Proposer une nouvelle date</DialogTitle>
                                 <DialogDescription>
-                                  Proposez une nouvelle date et heure pour ce rendez-vous
+                                  Proposez une nouvelle date et heure pour ce rendez-vous express
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
@@ -365,7 +392,7 @@ export const ExpressBookings = () => {
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Button onClick={handleProposeNewDate}>
+                                  <Button onClick={handleProposeNewDate} className="bg-blue-600 hover:bg-blue-700">
                                     Proposer cette date
                                   </Button>
                                   <Button variant="outline" onClick={() => setShowProposalDialog(false)}>
@@ -376,7 +403,7 @@ export const ExpressBookings = () => {
                             </DialogContent>
                           </Dialog>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleRejectBooking(booking.id)}
                           >

@@ -13,56 +13,18 @@ import { supabase } from "@/lib/supabase";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const BulkTimeSlotCreator = () => {
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date>();
   const [startTime, setStartTime] = useState<string>("09:00");
   const [endTime, setEndTime] = useState<string>("10:00");
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isCreatingSlots, setIsCreatingSlots] = useState(false);
   const [createRecurring, setCreateRecurring] = useState(false);
   const { toast } = useToast();
 
-  const handleSelectMonth = (option: string) => {
-    const today = new Date();
-    let newStartDate: Date;
-    let newEndDate: Date;
-
-    if (option === "current") {
-      newStartDate = startOfMonth(today);
-      newEndDate = endOfMonth(today);
-    } else if (option === "next") {
-      const nextMonth = addMonths(today, 1);
-      newStartDate = startOfMonth(nextMonth);
-      newEndDate = endOfMonth(nextMonth);
-    } else {
-      return;
-    }
-
-    setStartDate(newStartDate);
-    setEndDate(newEndDate);
-    
-    // Auto-select all dates in the range
-    const daysInRange = eachDayOfInterval({ start: newStartDate, end: newEndDate });
-    setSelectedDates(daysInRange);
-  };
-
-  const toggleDate = (date: Date) => {
-    const dateString = format(date, 'yyyy-MM-dd');
-    setSelectedDates(prev => {
-      const exists = prev.some(d => format(d, 'yyyy-MM-dd') === dateString);
-      if (exists) {
-        return prev.filter(d => format(d, 'yyyy-MM-dd') !== dateString);
-      } else {
-        return [...prev, date];
-      }
-    });
-  };
-
-  const createTimeSlots = async () => {
-    if (selectedDates.length === 0) {
+  const createTimeSlot = async () => {
+    if (!selectedDate) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner au moins une date",
+        description: "Veuillez sélectionner une date",
         variant: "destructive"
       });
       return;
@@ -80,36 +42,34 @@ const BulkTimeSlotCreator = () => {
     try {
       setIsCreatingSlots(true);
       
-      const timeSlots = selectedDates.map(date => ({
-        day_of_week: date.getDay(),
+      const timeSlot = {
+        day_of_week: selectedDate.getDay(),
         start_time: startTime,
         end_time: endTime,
         is_available: true,
         is_recurring: createRecurring,
-        specific_date: format(date, 'yyyy-MM-dd')
-      }));
+        specific_date: format(selectedDate, 'yyyy-MM-dd')
+      };
       
       const { error } = await supabase
         .from('time_slots')
-        .insert(timeSlots);
+        .insert([timeSlot]);
         
       if (error) throw error;
       
       toast({
         title: "Succès",
-        description: `${timeSlots.length} créneaux créés avec succès`,
+        description: `Créneau créé avec succès pour le ${format(selectedDate, 'PPP', { locale: fr })}`,
       });
 
       // Reset form
-      setSelectedDates([]);
-      setStartDate(undefined);
-      setEndDate(undefined);
+      setSelectedDate(undefined);
 
     } catch (error: any) {
-      console.error("Error creating time slots:", error);
+      console.error("Error creating time slot:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Erreur lors de la création des créneaux",
+        description: error.message || "Erreur lors de la création du créneau",
         variant: "destructive"
       });
     } finally {
@@ -117,43 +77,21 @@ const BulkTimeSlotCreator = () => {
     }
   };
 
-  const availableDates = startDate && endDate 
-    ? eachDayOfInterval({ start: startDate, end: endDate })
-    : [];
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Créer des créneaux en masse</CardTitle>
+        <CardTitle>Créer un nouveau créneau</CardTitle>
         <CardDescription>
-          Créez plusieurs créneaux horaires pour des dates spécifiques
+          Créez un créneau horaire pour une date spécifique
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="month-select">Sélectionner une période</Label>
-          <Select onValueChange={handleSelectMonth}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choisir une période" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="current">Mois en cours</SelectItem>
-              <SelectItem value="next">Mois prochain</SelectItem>
-              <SelectItem value="custom">Période personnalisée</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Label>Date du créneau</Label>
           <DatePicker
-            date={startDate}
-            setDate={setStartDate}
-            label="Date de début"
-          />
-          <DatePicker
-            date={endDate}
-            setDate={setEndDate}
-            label="Date de fin"
+            date={selectedDate}
+            setDate={setSelectedDate}
+            label=""
           />
         </div>
         
@@ -169,34 +107,6 @@ const BulkTimeSlotCreator = () => {
             label="Heure de fin"
           />
         </div>
-        
-        {availableDates.length > 0 && (
-          <div className="space-y-2">
-            <Label>Dates sélectionnées ({selectedDates.length})</Label>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-40 overflow-y-auto">
-              {availableDates.map(date => {
-                const isSelected = selectedDates.some(d => 
-                  format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-                );
-                return (
-                  <div key={format(date, 'yyyy-MM-dd')} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`date-${format(date, 'yyyy-MM-dd')}`}
-                      checked={isSelected}
-                      onCheckedChange={() => toggleDate(date)}
-                    />
-                    <Label 
-                      htmlFor={`date-${format(date, 'yyyy-MM-dd')}`} 
-                      className="text-xs cursor-pointer"
-                    >
-                      {format(date, 'dd/MM', { locale: fr })}
-                    </Label>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         <div className="flex items-center space-x-2 pt-2">
           <Checkbox
@@ -205,17 +115,25 @@ const BulkTimeSlotCreator = () => {
             onCheckedChange={(checked) => setCreateRecurring(checked as boolean)}
           />
           <Label htmlFor="recurring">
-            Créer comme créneaux récurrents
+            Créer comme créneau récurrent
           </Label>
         </div>
+
+        {selectedDate && (
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Créneau sélectionné :</strong> {format(selectedDate, 'PPP', { locale: fr })} de {startTime} à {endTime}
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={createTimeSlots} 
-          disabled={isCreatingSlots || selectedDates.length === 0}
+          onClick={createTimeSlot} 
+          disabled={isCreatingSlots || !selectedDate}
           className="w-full"
         >
-          {isCreatingSlots ? "Création en cours..." : `Créer ${selectedDates.length} créneau(x)`}
+          {isCreatingSlots ? "Création en cours..." : "Créer le créneau"}
         </Button>
       </CardFooter>
     </Card>

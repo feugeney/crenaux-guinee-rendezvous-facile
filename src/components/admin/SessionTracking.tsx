@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { User, Calendar, Clock, CheckCircle, Phone, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parseISO, isBefore, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface PaidApplication {
@@ -24,7 +24,7 @@ interface PaidApplication {
   payment_option: string;
   start_period: string;
   proposed_schedule: any;
-  payment_confirmed_at: string | null;
+  payment_confirmed_at?: string;
   stripe_session_id?: string;
 }
 
@@ -52,15 +52,16 @@ export const SessionTracking = () => {
 
   const fetchPaidApplications = async () => {
     try {
+      // Récupérer les candidatures validées (avec planning validé)
       const { data, error } = await supabase
         .from('political_launch_applications')
         .select('*')
-        .eq('status', 'paid')
+        .eq('schedule_validated', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Filter and map the data to ensure it matches our interface
+      // Mapper les données pour correspondre à notre interface
       const mappedData: PaidApplication[] = (data || []).map(app => ({
         id: app.id,
         full_name: app.full_name,
@@ -74,14 +75,14 @@ export const SessionTracking = () => {
         payment_option: app.payment_option,
         start_period: app.start_period,
         proposed_schedule: app.proposed_schedule,
-        payment_confirmed_at: app.payment_confirmed_at || new Date().toISOString(),
-        stripe_session_id: app.stripe_session_id
+        payment_confirmed_at: app.created_at, // Utiliser created_at comme fallback
+        stripe_session_id: app.stripe_session_id || undefined
       }));
 
       setPaidApplications(mappedData);
     } catch (error) {
-      console.error('Erreur lors du chargement des candidatures payées:', error);
-      toast.error('Erreur lors du chargement des candidatures payées');
+      console.error('Erreur lors du chargement des candidatures validées:', error);
+      toast.error('Erreur lors du chargement des candidatures validées');
     } finally {
       setLoading(false);
     }
@@ -120,13 +121,31 @@ export const SessionTracking = () => {
     return Math.round((completedSessions.length / allSessions.length) * 100);
   };
 
-  const getStatusBadge = (percentage: number) => {
-    if (percentage === 100) {
-      return <Badge className="bg-green-100 text-green-800">Terminé</Badge>;
-    } else if (percentage > 0) {
-      return <Badge className="bg-blue-100 text-blue-800">En cours</Badge>;
+  const getStatusBadge = (application: PaidApplication) => {
+    if (application.status === 'paid') {
+      const percentage = getCompletionPercentage(application);
+      if (percentage === 100) {
+        return <Badge className="bg-green-100 text-green-800">Terminé</Badge>;
+      } else if (percentage > 0) {
+        return <Badge className="bg-blue-100 text-blue-800">En cours</Badge>;
+      } else {
+        return <Badge className="bg-gray-100 text-gray-800">À commencer</Badge>;
+      }
+    } else if (application.status === 'payment_pending') {
+      return <Badge className="bg-yellow-100 text-yellow-800">En attente de paiement</Badge>;
     } else {
-      return <Badge className="bg-gray-100 text-gray-800">À commencer</Badge>;
+      return <Badge className="bg-purple-100 text-purple-800">Planning validé</Badge>;
+    }
+  };
+
+  const getSessionStatusColor = (session: SessionSchedule) => {
+    const now = new Date();
+    const sessionDate = parseISO(session.date);
+    
+    if (isBefore(sessionDate, now)) {
+      return 'bg-red-50 border-red-200'; // Sessions passées en rouge
+    } else {
+      return 'bg-green-50 border-green-200'; // Sessions à venir en vert
     }
   };
 
@@ -139,7 +158,7 @@ export const SessionTracking = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Suivi des Séances</h2>
-          <p className="text-muted-foreground">Suivez l'évolution des candidatures payées</p>
+          <p className="text-muted-foreground">Suivez l'évolution des candidatures validées</p>
         </div>
       </div>
 
@@ -193,9 +212,9 @@ export const SessionTracking = () => {
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-purple-500" />
               <div>
-                <p className="text-sm font-medium">À commencer</p>
+                <p className="text-sm font-medium">En attente paiement</p>
                 <p className="text-2xl font-bold">
-                  {paidApplications.filter(app => getCompletionPercentage(app) === 0).length}
+                  {paidApplications.filter(app => app.status === 'payment_pending').length}
                 </p>
               </div>
             </div>
@@ -203,12 +222,12 @@ export const SessionTracking = () => {
         </Card>
       </div>
 
-      {/* Table des candidatures payées */}
+      {/* Table des candidatures validées */}
       <Card>
         <CardHeader>
           <CardTitle>Candidatures en suivi</CardTitle>
           <CardDescription>
-            {paidApplications.length} candidature(s) payée(s)
+            {paidApplications.length} candidature(s) avec planning validé
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -217,7 +236,7 @@ export const SessionTracking = () => {
               <TableRow>
                 <TableHead>Candidat</TableHead>
                 <TableHead>Profil</TableHead>
-                <TableHead>Date paiement</TableHead>
+                <TableHead>Date création</TableHead>
                 <TableHead>Progression</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Actions</TableHead>
@@ -251,7 +270,7 @@ export const SessionTracking = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {application.payment_confirmed_at && format(new Date(application.payment_confirmed_at), 'PPP', { locale: fr })}
+                      {format(new Date(application.created_at), 'PPP', { locale: fr })}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -267,7 +286,7 @@ export const SessionTracking = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(completionPercentage)}
+                      {getStatusBadge(application)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -293,7 +312,7 @@ export const SessionTracking = () => {
           <DialogHeader>
             <DialogTitle>Suivi des séances - {selectedApplication?.full_name}</DialogTitle>
             <DialogDescription>
-              Gérez et suivez l'évolution des séances
+              Gérez et suivez l'évolution des séances (Rouge = passées, Vert = à venir)
             </DialogDescription>
           </DialogHeader>
           
@@ -328,12 +347,12 @@ export const SessionTracking = () => {
                   </h3>
                   <div className="space-y-3">
                     {sessions.map((session, index) => (
-                      <Card key={index} className={`p-4 ${session.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
+                      <Card key={index} className={`p-4 ${getSessionStatusColor(session)} ${session.completed ? 'ring-2 ring-blue-500' : ''}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="font-medium">Séance {session.session_number}</span>
-                              {session.completed && <CheckCircle className="h-4 w-4 text-green-600" />}
+                              {session.completed && <CheckCircle className="h-4 w-4 text-blue-600" />}
                             </div>
                             <p className="text-sm text-gray-600 mb-1">{session.topic}</p>
                             <div className="text-xs text-gray-500">
@@ -361,12 +380,12 @@ export const SessionTracking = () => {
                   </h3>
                   <div className="space-y-3">
                     {followUpSessions.map((session, index) => (
-                      <Card key={index} className={`p-4 ${session.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
+                      <Card key={index} className={`p-4 ${getSessionStatusColor(session)} ${session.completed ? 'ring-2 ring-blue-500' : ''}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="font-medium">Semaine {session.session_number}</span>
-                              {session.completed && <CheckCircle className="h-4 w-4 text-green-600" />}
+                              {session.completed && <CheckCircle className="h-4 w-4 text-blue-600" />}
                             </div>
                             <p className="text-sm text-gray-600 mb-1">{session.topic}</p>
                             <div className="text-xs text-gray-500">

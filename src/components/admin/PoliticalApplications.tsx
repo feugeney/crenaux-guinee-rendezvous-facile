@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { User, Mail, Phone, Eye, CheckCircle, XCircle, Clock, Calendar, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -28,12 +31,24 @@ interface PoliticalApplication {
   desired_transformation: string;
 }
 
+interface SessionSchedule {
+  session_number: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  topic: string;
+}
+
 export const PoliticalApplications = () => {
   const [applications, setApplications] = useState<PoliticalApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedApplication, setSelectedApplication] = useState<PoliticalApplication | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [sessions, setSessions] = useState<SessionSchedule[]>([]);
+  const [followUpSessions, setFollowUpSessions] = useState<SessionSchedule[]>([]);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -53,6 +68,83 @@ export const PoliticalApplications = () => {
       toast.error('Erreur lors du chargement des candidatures');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const initializeSchedule = () => {
+    // Initialiser 6 séances principales
+    const mainSessions = Array.from({ length: 6 }, (_, i) => ({
+      session_number: i + 1,
+      date: '',
+      start_time: '10:00',
+      end_time: '11:30',
+      topic: `Séance ${i + 1} - Formation politique`
+    }));
+
+    // Initialiser 2 séances de suivi
+    const followUp = Array.from({ length: 2 }, (_, i) => ({
+      session_number: i + 1,
+      date: '',
+      start_time: '10:00',
+      end_time: '11:00',
+      topic: `Suivi ${i + 1} - Post-formation`
+    }));
+
+    setSessions(mainSessions);
+    setFollowUpSessions(followUp);
+  };
+
+  const handleApproveWithSchedule = (application: PoliticalApplication) => {
+    setSelectedApplication(application);
+    initializeSchedule();
+    setShowScheduleDialog(true);
+  };
+
+  const updateSession = (index: number, field: keyof SessionSchedule, value: string, isFollowUp = false) => {
+    if (isFollowUp) {
+      setFollowUpSessions(prev => prev.map((session, i) => 
+        i === index ? { ...session, [field]: value } : session
+      ));
+    } else {
+      setSessions(prev => prev.map((session, i) => 
+        i === index ? { ...session, [field]: value } : session
+      ));
+    }
+  };
+
+  const handleFinalApproval = async () => {
+    if (!selectedApplication) return;
+
+    // Vérifier que toutes les séances ont une date
+    const allSessionsComplete = sessions.every(s => s.date) && followUpSessions.every(s => s.date);
+    if (!allSessionsComplete) {
+      toast.error('Veuillez compléter toutes les dates des séances');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('approve-political-application', {
+        body: {
+          applicationId: selectedApplication.id,
+          proposedSchedule: {
+            sessions,
+            followUpSessions
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Candidature approuvée et email envoyé avec succès');
+      setShowScheduleDialog(false);
+      setSelectedApplication(null);
+      fetchApplications();
+    } catch (error: any) {
+      console.error('Erreur lors de l\'approbation:', error);
+      toast.error('Erreur lors de l\'approbation: ' + error.message);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -98,7 +190,7 @@ export const PoliticalApplications = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Gestion des Candidatures</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Validation des Candidatures</h2>
           <p className="text-muted-foreground">Gérez les candidatures au programme politique</p>
         </div>
       </div>
@@ -248,11 +340,11 @@ export const PoliticalApplications = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleUpdateStatus(application.id, 'approved')}
+                            onClick={() => handleApproveWithSchedule(application)}
                             className="text-green-600 hover:bg-green-50"
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Approuver
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Approuver & Planifier
                           </Button>
                           <Button
                             variant="outline"
@@ -274,7 +366,126 @@ export const PoliticalApplications = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog des détails */}
+      {/* Dialog de planification */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Planifier les séances - {selectedApplication?.full_name}</DialogTitle>
+            <DialogDescription>
+              Définissez le planning des 6 séances principales et des 2 séances de suivi
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Séances principales */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Séances principales (6 séances)</h3>
+              <div className="space-y-4">
+                {sessions.map((session, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={session.date}
+                          onChange={(e) => updateSession(index, 'date', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Sujet</Label>
+                        <Input
+                          value={session.topic}
+                          onChange={(e) => updateSession(index, 'topic', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure début</Label>
+                        <Input
+                          type="time"
+                          value={session.start_time}
+                          onChange={(e) => updateSession(index, 'start_time', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure fin</Label>
+                        <Input
+                          type="time"
+                          value={session.end_time}
+                          onChange={(e) => updateSession(index, 'end_time', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Séances de suivi */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Séances de suivi (2 séances)</h3>
+              <div className="space-y-4">
+                {followUpSessions.map((session, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={session.date}
+                          onChange={(e) => updateSession(index, 'date', e.target.value, true)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Sujet</Label>
+                        <Input
+                          value={session.topic}
+                          onChange={(e) => updateSession(index, 'topic', e.target.value, true)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure début</Label>
+                        <Input
+                          type="time"
+                          value={session.start_time}
+                          onChange={(e) => updateSession(index, 'start_time', e.target.value, true)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure fin</Label>
+                        <Input
+                          type="time"
+                          value={session.end_time}
+                          onChange={(e) => updateSession(index, 'end_time', e.target.value, true)}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <Button 
+              onClick={handleFinalApproval} 
+              disabled={processing}
+              className="flex-1"
+            >
+              {processing ? 'Traitement...' : 'Approuver et Envoyer le Lien de Paiement'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowScheduleDialog(false)}
+              disabled={processing}
+            >
+              Annuler
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog des détails - gardé inchangé */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>

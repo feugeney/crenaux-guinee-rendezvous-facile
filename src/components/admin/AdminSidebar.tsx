@@ -11,7 +11,9 @@ import {
   Clock,
   CalendarCheck,
   Users,
-  UserPlus
+  UserPlus,
+  CheckCircle,
+  FileText
 } from 'lucide-react';
 import {
   Sidebar,
@@ -28,10 +30,12 @@ import {
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
+} from '@/components/ui/sidebar';
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/collapsible';
 
 const menuItems = [
   { 
@@ -50,12 +54,12 @@ const menuItems = [
     icon: BookOpen,
     submenu: [
       {
-        title: 'Rendez-vous express',
+        title: 'Validation Express',
         url: '/admin/bookings/express',
         icon: Clock
       },
       {
-        title: 'Rendez-vous standard',
+        title: 'Réservations Standard',
         url: '/admin/bookings/standard',
         icon: CalendarCheck
       }
@@ -67,14 +71,14 @@ const menuItems = [
     icon: Flag,
     submenu: [
       {
-        title: 'Gestion des candidatures',
+        title: 'Validation des candidatures',
         url: '/admin/political-program/applications',
-        icon: UserPlus
+        icon: CheckCircle
       },
       {
-        title: 'Candidats inscrits',
+        title: 'Suivi des séances',
         url: '/admin/political-program/candidates',
-        icon: Users
+        icon: FileText
       }
     ]
   },

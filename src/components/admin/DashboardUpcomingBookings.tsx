@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface UpcomingBooking {
@@ -52,6 +52,29 @@ const DashboardUpcomingBookings = () => {
     }
   };
 
+  const getTimePosition = (startTime: string, endTime: string) => {
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    // Plage horaire de 8h à 19h (11 heures)
+    const dayStart = 8 * 60; // 8h00 en minutes
+    const dayEnd = 19 * 60;   // 19h00 en minutes
+    const totalDayMinutes = dayEnd - dayStart;
+    
+    const left = ((startMinutes - dayStart) / totalDayMinutes) * 100;
+    const width = ((endMinutes - startMinutes) / totalDayMinutes) * 100;
+    
+    return { left: Math.max(0, left), width: Math.max(5, width) };
+  };
+
+  const timeSlots = [];
+  for (let hour = 8; hour <= 18; hour++) {
+    timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+  }
+
   if (isLoading) {
     return (
       <Card>
@@ -84,43 +107,78 @@ const DashboardUpcomingBookings = () => {
             Aucun rendez-vous confirmé à venir
           </div>
         ) : (
-          <div className="space-y-3">
-            {bookings.map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h4 className="font-medium text-sm">{booking.topic}</h4>
-                    {booking.is_priority && (
-                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
-                        Prioritaire
-                      </Badge>
-                    )}
+          <div className="space-y-4">
+            {/* Grille horaire */}
+            <div className="flex border-b pb-2">
+              <div className="w-32 flex-shrink-0"></div>
+              <div className="flex-1 flex relative">
+                {timeSlots.map((time) => (
+                  <div
+                    key={time}
+                    className="flex-1 text-xs text-center text-gray-500 border-l first:border-l-0"
+                  >
+                    {time}
                   </div>
-                  <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                    <span className="flex items-center space-x-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{format(new Date(booking.date), 'dd/MM/yyyy', { locale: fr })}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{booking.start_time.substring(0, 5)}</span>
-                    </span>
-                    {booking.customer_name && (
-                      <span className="flex items-center space-x-1">
-                        <User className="h-3 w-3" />
-                        <span>{booking.customer_name}</span>
-                      </span>
-                    )}
+                ))}
+              </div>
+            </div>
+
+            {/* Rendez-vous en format Gantt */}
+            {bookings.map((booking) => {
+              const position = getTimePosition(booking.start_time, booking.end_time);
+              
+              return (
+                <div key={booking.id} className="flex items-center">
+                  {/* Informations du rendez-vous */}
+                  <div className="w-32 flex-shrink-0 pr-2">
+                    <div className="text-sm font-medium truncate">{booking.topic}</div>
+                    <div className="text-xs text-gray-500">
+                      {format(parseISO(booking.date), 'dd/MM', { locale: fr })}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">{booking.customer_name || 'Client'}</span>
+                    </div>
+                  </div>
+
+                  {/* Barre de Gantt */}
+                  <div className="flex-1 relative h-8 border border-gray-200 rounded">
+                    <div
+                      className={`absolute top-0 bottom-0 rounded flex items-center justify-center text-xs font-medium ${
+                        booking.is_priority 
+                          ? 'bg-red-500 text-white border border-red-600' 
+                          : 'bg-blue-500 text-white border border-blue-600'
+                      }`}
+                      style={{
+                        left: `${position.left}%`,
+                        width: `${position.width}%`,
+                      }}
+                    >
+                      <div className="flex items-center gap-1 px-1">
+                        <Clock className="h-3 w-3" />
+                        <span className="truncate">
+                          {booking.start_time.substring(0, 5)} - {booking.end_time.substring(0, 5)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Badge de priorité */}
+                  <div className="w-20 flex-shrink-0 ml-2">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        booking.is_priority 
+                          ? 'bg-red-100 text-red-800 border-red-300' 
+                          : 'bg-blue-100 text-blue-800 border-blue-300'
+                      }`}
+                    >
+                      {booking.is_priority ? 'Express' : 'Standard'}
+                    </Badge>
                   </div>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className="bg-green-100 text-green-800 text-xs"
-                >
-                  Confirmé
-                </Badge>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

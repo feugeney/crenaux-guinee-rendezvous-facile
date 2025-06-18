@@ -18,7 +18,7 @@ export const TimeSlotList = ({ timeSlots, onEdit, onDelete }: TimeSlotListProps)
         <CardDescription>{timeSlots.length} créneau(x) configuré(s)</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {timeSlots.map((slot) => (
             <TimeSlotItem
               key={slot.id}

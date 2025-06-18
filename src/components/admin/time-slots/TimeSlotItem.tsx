@@ -19,14 +19,14 @@ export const TimeSlotItem = ({ slot, onEdit, onDelete }: TimeSlotItemProps) => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="flex items-center gap-4">
-        <Clock className="h-5 w-5 text-gray-500" />
+    <div className="flex items-center justify-between p-3 border rounded-lg">
+      <div className="flex items-center gap-3">
+        <Clock className="h-4 w-4 text-gray-500" />
         <div>
-          <p className="font-medium">
+          <p className="font-medium text-sm">
             {slot.specific_date ? format(new Date(slot.specific_date), 'PPP', { locale: fr }) : getDayName(slot.day_of_week)}
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-gray-500">
             {slot.start_time} - {slot.end_time}
             {slot.is_recurring && ' (récurrent)'}
           </p>
@@ -43,13 +43,13 @@ export const TimeSlotItem = ({ slot, onEdit, onDelete }: TimeSlotItemProps) => {
           )}
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-1">
         <Button 
           variant="outline" 
           size="sm"
           onClick={() => onEdit(slot)}
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-3 w-3" />
         </Button>
         <Button 
           variant="outline" 
@@ -57,7 +57,7 @@ export const TimeSlotItem = ({ slot, onEdit, onDelete }: TimeSlotItemProps) => {
           onClick={() => onDelete(slot.id)}
           className="text-red-600 hover:text-red-700"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3 w-3" />
         </Button>
       </div>
     </div>

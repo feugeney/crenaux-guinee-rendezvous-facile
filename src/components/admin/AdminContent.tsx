@@ -13,13 +13,25 @@ import { StandardBookings } from './StandardBookings';
 import { UpcomingBookings } from './UpcomingBookings';
 import { PoliticalApplications } from './PoliticalApplications';
 import { RegisteredCandidates } from './RegisteredCandidates';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 export const AdminContent = () => {
   return (
     <SidebarInset className="flex-1">
-      <div className="flex items-center gap-2 p-4 border-b">
-        <SidebarTrigger />
-        <h1 className="text-lg font-semibold">Administration</h1>
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger />
+          <h1 className="text-lg font-semibold">Panneau d'Administration</h1>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Déconnexion</span>
+        </Button>
       </div>
       <div className="p-6">
         <Routes>

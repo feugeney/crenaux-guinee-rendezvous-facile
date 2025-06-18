@@ -10,7 +10,7 @@ const mapToTimeSlot = (dbSlot: any): TimeSlot => {
     start_time: dbSlot.start_time,
     end_time: dbSlot.end_time,
     available: dbSlot.available,
-    is_blocked: dbSlot.is_blocked || false, // Ajout de is_blocked
+    is_blocked: dbSlot.is_blocked || false,
     is_recurring: dbSlot.is_recurring,
     specific_date: dbSlot.specific_date,
     created_at: dbSlot.created_at,
@@ -23,13 +23,13 @@ const mapToTimeSlot = (dbSlot: any): TimeSlot => {
 };
 
 // Map from application format to database format
-const mapToDbTimeSlot = (timeSlot: TimeSlot) => {
+const mapToDbTimeSlot = (timeSlot: Partial<TimeSlot>) => {
   return {
     day_of_week: timeSlot.day_of_week || 0,
     start_time: timeSlot.start_time || timeSlot.startTime || '',
     end_time: timeSlot.end_time || timeSlot.endTime || '',
-    available: timeSlot.available,
-    is_blocked: timeSlot.is_blocked || false, // Ajout de is_blocked avec défaut false
+    available: timeSlot.available !== undefined ? timeSlot.available : true,
+    is_blocked: timeSlot.is_blocked || false,
     is_recurring: timeSlot.is_recurring !== undefined ? timeSlot.is_recurring : true,
     specific_date: timeSlot.specific_date || null
   };
@@ -42,6 +42,8 @@ const getDayName = (dayOfWeek: number): string => {
 };
 
 export const fetchTimeSlots = async () => {
+  console.log("Récupération des créneaux...");
+  
   const { data, error } = await supabase
     .from('time_slots')
     .select('*')
@@ -53,23 +55,22 @@ export const fetchTimeSlots = async () => {
     throw error;
   }
 
-  // Map DB format to application format
+  console.log("Créneaux récupérés:", data);
   return (data || []).map(mapToTimeSlot);
 };
 
 export const fetchAvailableTimeSlots = async (date: string) => {
-  // Format date to YYYY-MM-DD
   const formattedDate = date.split('T')[0];
-  const dayOfWeek = new Date(formattedDate).getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const dayOfWeek = new Date(formattedDate).getDay();
 
-  // Fetch both recurring slots for this day of week and specific date slots
-  // Only get slots that are available and not blocked
+  console.log("Récupération des créneaux disponibles pour:", formattedDate, "jour de la semaine:", dayOfWeek);
+
   const { data, error } = await supabase
     .from('time_slots')
     .select('*')
     .or(`and(is_recurring.eq.true,day_of_week.eq.${dayOfWeek}),and(is_recurring.eq.false,specific_date.eq.${formattedDate})`)
     .eq('available', true)
-    .eq('is_blocked', false) // Exclure les créneaux bloqués
+    .eq('is_blocked', false)
     .order('start_time', { ascending: true });
 
   if (error) {
@@ -77,11 +78,15 @@ export const fetchAvailableTimeSlots = async (date: string) => {
     throw error;
   }
 
+  console.log("Créneaux disponibles récupérés:", data);
   return (data || []).map(mapToTimeSlot);
 };
 
-export const createTimeSlot = async (timeSlot: TimeSlot) => {
+export const createTimeSlot = async (timeSlot: Partial<TimeSlot>) => {
+  console.log("Création d'un nouveau créneau:", timeSlot);
+  
   const dbTimeSlot = mapToDbTimeSlot(timeSlot);
+  console.log("Données mappées pour la base:", dbTimeSlot);
   
   const { data, error } = await supabase
     .from('time_slots')
@@ -90,13 +95,16 @@ export const createTimeSlot = async (timeSlot: TimeSlot) => {
 
   if (error) {
     console.error('Error creating time slot:', error);
-    throw error;
+    throw new Error(`Erreur lors de la création: ${error.message}`);
   }
 
+  console.log("Créneau créé dans la base:", data);
   return data ? mapToTimeSlot(data[0]) : null;
 };
 
 export const updateTimeSlot = async (timeSlot: TimeSlot) => {
+  console.log("Mise à jour du créneau:", timeSlot);
+  
   const dbTimeSlot = mapToDbTimeSlot(timeSlot);
 
   const { data, error } = await supabase
@@ -110,10 +118,13 @@ export const updateTimeSlot = async (timeSlot: TimeSlot) => {
     throw error;
   }
 
+  console.log("Créneau mis à jour:", data);
   return data ? mapToTimeSlot(data[0]) : null;
 };
 
 export const deleteTimeSlot = async (id: string) => {
+  console.log("Suppression du créneau:", id);
+  
   const { error } = await supabase
     .from('time_slots')
     .delete()
@@ -124,11 +135,13 @@ export const deleteTimeSlot = async (id: string) => {
     throw error;
   }
 
+  console.log("Créneau supprimé avec succès");
   return true;
 };
 
-// Nouvelle fonction pour bloquer/débloquer un créneau
 export const toggleTimeSlotBlocked = async (id: string, isBlocked: boolean) => {
+  console.log("Basculement du statut bloqué pour le créneau:", id, "vers:", isBlocked);
+  
   const { data, error } = await supabase
     .from('time_slots')
     .update({ is_blocked: isBlocked })
@@ -140,5 +153,6 @@ export const toggleTimeSlotBlocked = async (id: string, isBlocked: boolean) => {
     throw error;
   }
 
+  console.log("Statut bloqué mis à jour:", data);
   return data ? mapToTimeSlot(data[0]) : null;
 };

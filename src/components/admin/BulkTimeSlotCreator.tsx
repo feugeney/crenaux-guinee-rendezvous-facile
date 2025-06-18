@@ -8,8 +8,9 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { createTimeSlot } from "@/services/timeSlotService";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TimeSlot } from "@/types";
 
 const BulkTimeSlotCreator = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -19,7 +20,9 @@ const BulkTimeSlotCreator = () => {
   const [createRecurring, setCreateRecurring] = useState(false);
   const { toast } = useToast();
 
-  const createTimeSlot = async () => {
+  const handleCreateTimeSlot = async () => {
+    console.log("Tentative de création de créneau...");
+    
     if (!selectedDate) {
       toast({
         title: "Erreur",
@@ -50,21 +53,21 @@ const BulkTimeSlotCreator = () => {
     try {
       setIsCreatingSlots(true);
       
-      const timeSlot = {
+      const timeSlotData: Partial<TimeSlot> = {
         day_of_week: selectedDate.getDay(),
         start_time: startTime,
         end_time: endTime,
         available: true,
-        is_blocked: false, // Ajout de is_blocked par défaut à false
+        is_blocked: false,
         is_recurring: createRecurring,
-        specific_date: createRecurring ? null : format(selectedDate, 'yyyy-MM-dd')
+        specific_date: createRecurring ? undefined : format(selectedDate, 'yyyy-MM-dd')
       };
       
-      const { error } = await supabase
-        .from('time_slots')
-        .insert([timeSlot]);
-        
-      if (error) throw error;
+      console.log("Données du créneau à créer:", timeSlotData);
+      
+      const result = await createTimeSlot(timeSlotData as TimeSlot);
+      
+      console.log("Créneau créé avec succès:", result);
       
       toast({
         title: "Succès",
@@ -75,9 +78,10 @@ const BulkTimeSlotCreator = () => {
       setSelectedDate(undefined);
       setStartTime("09:00");
       setEndTime("10:00");
+      setCreateRecurring(false);
 
     } catch (error: any) {
-      console.error("Error creating time slot:", error);
+      console.error("Erreur lors de la création du créneau:", error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors de la création du créneau",
@@ -141,7 +145,7 @@ const BulkTimeSlotCreator = () => {
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={createTimeSlot} 
+          onClick={handleCreateTimeSlot} 
           disabled={isCreatingSlots || !selectedDate}
           className="w-full"
         >

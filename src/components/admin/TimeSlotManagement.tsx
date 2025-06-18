@@ -12,7 +12,6 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { TimePicker } from '@/components/ui/time-picker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import BulkTimeSlotCreator from './BulkTimeSlotCreator';
 
 export const TimeSlotManagement = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -136,9 +135,6 @@ export const TimeSlotManagement = () => {
           Ajouter un créneau
         </Button>
       </div>
-
-      {/* Créateur de créneaux en lot */}
-      <BulkTimeSlotCreator />
 
       {showForm && (
         <Card>

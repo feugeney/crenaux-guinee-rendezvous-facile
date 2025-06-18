@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, Mail, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Clock, User, Mail, CheckCircle, XCircle, Eye, CalendarDays } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { BookingsGanttCalendar } from './BookingsGanttCalendar';
 
 interface UpcomingBooking {
   id: string;
@@ -182,78 +183,98 @@ export const UpcomingBookings = ({ selectedDate }: UpcomingBookingsProps) => {
         </Card>
       </div>
 
-      {/* Table des rendez-vous */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des rendez-vous à venir</CardTitle>
-          <CardDescription>
-            {filteredBookings.length} rendez-vous trouvé(s)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Sujet</TableHead>
-                <TableHead>Date & Heure</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBookings.map((booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{booking.customer_name || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Mail className="h-3 w-3" />
-                        {booking.email}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {getTypeBadge(booking.is_priority)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs">
-                      <p className="font-medium">{booking.topic}</p>
-                      {booking.message && (
-                        <p className="text-sm text-gray-500 truncate">{booking.message}</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        {format(new Date(booking.date), 'PPP', { locale: fr })}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-3 w-3 text-gray-500" />
-                        {booking.start_time} - {booking.end_time}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Voir détails
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Onglets pour vue calendrier et liste */}
+      <Tabs defaultValue="calendar" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Vue Calendrier
+          </TabsTrigger>
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <Table className="h-4 w-4" />
+            Vue Liste
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="calendar" className="space-y-4">
+          <BookingsGanttCalendar bookings={filteredBookings} />
+        </TabsContent>
+        
+        <TabsContent value="list" className="space-y-4">
+          {/* Table des rendez-vous */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des rendez-vous à venir</CardTitle>
+              <CardDescription>
+                {filteredBookings.length} rendez-vous trouvé(s)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Sujet</TableHead>
+                    <TableHead>Date & Heure</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredBookings.map((booking) => (
+                    <TableRow key={booking.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium">{booking.customer_name || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Mail className="h-3 w-3" />
+                            {booking.email}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getTypeBadge(booking.is_priority)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-xs">
+                          <p className="font-medium">{booking.topic}</p>
+                          {booking.message && (
+                            <p className="text-sm text-gray-500 truncate">{booking.message}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            {format(new Date(booking.date), 'PPP', { locale: fr })}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-3 w-3 text-gray-500" />
+                            {booking.start_time} - {booking.end_time}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Voir détails
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

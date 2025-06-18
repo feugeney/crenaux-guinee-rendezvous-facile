@@ -967,6 +967,7 @@ export type Database = {
           day_of_week: number
           end_time: string
           id: string
+          is_blocked: boolean | null
           is_recurring: boolean | null
           specific_date: string | null
           start_time: string
@@ -978,6 +979,7 @@ export type Database = {
           day_of_week: number
           end_time: string
           id?: string
+          is_blocked?: boolean | null
           is_recurring?: boolean | null
           specific_date?: string | null
           start_time: string
@@ -989,6 +991,7 @@ export type Database = {
           day_of_week?: number
           end_time?: string
           id?: string
+          is_blocked?: boolean | null
           is_recurring?: boolean | null
           specific_date?: string | null
           start_time?: string

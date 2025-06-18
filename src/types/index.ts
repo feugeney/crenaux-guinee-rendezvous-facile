@@ -1,4 +1,3 @@
-
 export interface Booking {
   id: string;
   user_id?: string;
@@ -42,11 +41,12 @@ export interface TimeSlot {
   start_time: string;
   end_time: string;
   available: boolean;
-  is_recurring?: boolean;
+  is_blocked?: boolean;
+  is_recurring: boolean;
   specific_date?: string;
   created_at: string;
   updated_at: string;
-  // Legacy properties for backward compatibility
+  // Legacy compatibility
   startTime?: string;
   endTime?: string;
   day?: string;

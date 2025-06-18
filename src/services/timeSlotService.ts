@@ -10,6 +10,7 @@ const mapToTimeSlot = (dbSlot: any): TimeSlot => {
     start_time: dbSlot.start_time,
     end_time: dbSlot.end_time,
     available: dbSlot.available,
+    is_blocked: dbSlot.is_blocked || false, // Ajout de is_blocked
     is_recurring: dbSlot.is_recurring,
     specific_date: dbSlot.specific_date,
     created_at: dbSlot.created_at,
@@ -28,6 +29,7 @@ const mapToDbTimeSlot = (timeSlot: TimeSlot) => {
     start_time: timeSlot.start_time || timeSlot.startTime || '',
     end_time: timeSlot.end_time || timeSlot.endTime || '',
     available: timeSlot.available,
+    is_blocked: timeSlot.is_blocked || false, // Ajout de is_blocked avec défaut false
     is_recurring: timeSlot.is_recurring !== undefined ? timeSlot.is_recurring : true,
     specific_date: timeSlot.specific_date || null
   };
@@ -61,11 +63,13 @@ export const fetchAvailableTimeSlots = async (date: string) => {
   const dayOfWeek = new Date(formattedDate).getDay(); // 0 = Sunday, 1 = Monday, etc.
 
   // Fetch both recurring slots for this day of week and specific date slots
+  // Only get slots that are available and not blocked
   const { data, error } = await supabase
     .from('time_slots')
     .select('*')
     .or(`and(is_recurring.eq.true,day_of_week.eq.${dayOfWeek}),and(is_recurring.eq.false,specific_date.eq.${formattedDate})`)
     .eq('available', true)
+    .eq('is_blocked', false) // Exclure les créneaux bloqués
     .order('start_time', { ascending: true });
 
   if (error) {
@@ -121,4 +125,20 @@ export const deleteTimeSlot = async (id: string) => {
   }
 
   return true;
+};
+
+// Nouvelle fonction pour bloquer/débloquer un créneau
+export const toggleTimeSlotBlocked = async (id: string, isBlocked: boolean) => {
+  const { data, error } = await supabase
+    .from('time_slots')
+    .update({ is_blocked: isBlocked })
+    .eq('id', id)
+    .select();
+
+  if (error) {
+    console.error('Error toggling time slot blocked status:', error);
+    throw error;
+  }
+
+  return data ? mapToTimeSlot(data[0]) : null;
 };

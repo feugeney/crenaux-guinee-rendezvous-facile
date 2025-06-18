@@ -3,10 +3,9 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
-import { addMonths, format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -38,6 +37,15 @@ const BulkTimeSlotCreator = () => {
       });
       return;
     }
+
+    if (startTime >= endTime) {
+      toast({
+        title: "Erreur",
+        description: "L'heure de début doit être antérieure à l'heure de fin",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsCreatingSlots(true);
@@ -46,9 +54,10 @@ const BulkTimeSlotCreator = () => {
         day_of_week: selectedDate.getDay(),
         start_time: startTime,
         end_time: endTime,
-        is_available: true,
+        available: true,
+        is_blocked: false, // Ajout de is_blocked par défaut à false
         is_recurring: createRecurring,
-        specific_date: format(selectedDate, 'yyyy-MM-dd')
+        specific_date: createRecurring ? null : format(selectedDate, 'yyyy-MM-dd')
       };
       
       const { error } = await supabase
@@ -59,11 +68,13 @@ const BulkTimeSlotCreator = () => {
       
       toast({
         title: "Succès",
-        description: `Créneau créé avec succès pour le ${format(selectedDate, 'PPP', { locale: fr })}`,
+        description: `Créneau créé avec succès pour le ${format(selectedDate, 'PPP', { locale: fr })} de ${startTime} à ${endTime}`,
       });
 
       // Reset form
       setSelectedDate(undefined);
+      setStartTime("09:00");
+      setEndTime("10:00");
 
     } catch (error: any) {
       console.error("Error creating time slot:", error);
@@ -82,7 +93,7 @@ const BulkTimeSlotCreator = () => {
       <CardHeader>
         <CardTitle>Créer un nouveau créneau</CardTitle>
         <CardDescription>
-          Créez un créneau horaire pour une date spécifique
+          Créez un créneau horaire pour une date spécifique ou récurrent
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -115,7 +126,7 @@ const BulkTimeSlotCreator = () => {
             onCheckedChange={(checked) => setCreateRecurring(checked as boolean)}
           />
           <Label htmlFor="recurring">
-            Créer comme créneau récurrent
+            Créer comme créneau récurrent (se répète chaque semaine)
           </Label>
         </div>
 
@@ -123,6 +134,7 @@ const BulkTimeSlotCreator = () => {
           <div className="p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
               <strong>Créneau sélectionné :</strong> {format(selectedDate, 'PPP', { locale: fr })} de {startTime} à {endTime}
+              {createRecurring && ' (récurrent chaque semaine)'}
             </p>
           </div>
         )}

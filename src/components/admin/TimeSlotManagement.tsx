@@ -53,21 +53,29 @@ export const TimeSlotManagement = () => {
       return;
     }
 
+    if (startTime >= endTime) {
+      toast.error('L\'heure de début doit être antérieure à l\'heure de fin');
+      return;
+    }
+
     try {
-      const timeSlotData = {
+      const timeSlotData: Partial<TimeSlot> = {
         day_of_week: selectedDate.getDay(),
         start_time: startTime,
         end_time: endTime,
         available: available,
+        is_blocked: false,
         is_recurring: isRecurring,
-        specific_date: format(selectedDate, 'yyyy-MM-dd')
+        specific_date: isRecurring ? undefined : format(selectedDate, 'yyyy-MM-dd')
       };
 
+      console.log('Données du créneau à créer/modifier:', timeSlotData);
+
       if (editingSlot) {
-        await updateTimeSlot({ ...editingSlot, ...timeSlotData });
+        await updateTimeSlot({ ...editingSlot, ...timeSlotData } as TimeSlot);
         toast.success('Créneau mis à jour');
       } else {
-        await createTimeSlot(timeSlotData as TimeSlot);
+        await createTimeSlot(timeSlotData);
         toast.success('Créneau créé');
       }
       
@@ -75,9 +83,9 @@ export const TimeSlotManagement = () => {
       setEditingSlot(null);
       resetForm();
       loadTimeSlots();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(error.message || 'Erreur lors de la sauvegarde');
     }
   };
 

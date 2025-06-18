@@ -24,7 +24,7 @@ const mapToTimeSlot = (dbSlot: any): TimeSlot => {
 
 // Map from application format to database format
 const mapToDbTimeSlot = (timeSlot: Partial<TimeSlot>) => {
-  return {
+  const dbSlot = {
     day_of_week: timeSlot.day_of_week || 0,
     start_time: timeSlot.start_time || timeSlot.startTime || '',
     end_time: timeSlot.end_time || timeSlot.endTime || '',
@@ -33,6 +33,9 @@ const mapToDbTimeSlot = (timeSlot: Partial<TimeSlot>) => {
     is_recurring: timeSlot.is_recurring !== undefined ? timeSlot.is_recurring : true,
     specific_date: timeSlot.specific_date || null
   };
+  
+  console.log("Mapping timeSlot to DB format:", { input: timeSlot, output: dbSlot });
+  return dbSlot;
 };
 
 // Helper function to get day name from day of week number
@@ -84,6 +87,42 @@ export const fetchAvailableTimeSlots = async (date: string) => {
 
 export const createTimeSlot = async (timeSlot: Partial<TimeSlot>) => {
   console.log("Création d'un nouveau créneau:", timeSlot);
+  
+  // Validation des données requises
+  if (!timeSlot.start_time || !timeSlot.end_time) {
+    throw new Error("Les heures de début et de fin sont requises");
+  }
+  
+  if (timeSlot.start_time >= timeSlot.end_time) {
+    throw new Error("L'heure de début doit être antérieure à l'heure de fin");
+  }
+
+  // Vérifier s'il existe déjà un créneau similaire
+  const existingSlotQuery = supabase
+    .from('time_slots')
+    .select('*')
+    .eq('day_of_week', timeSlot.day_of_week || 0)
+    .eq('start_time', timeSlot.start_time)
+    .eq('end_time', timeSlot.end_time);
+
+  // Si c'est un créneau récurrent, on vérifie seulement par jour de la semaine
+  // Si c'est un créneau spécifique, on vérifie aussi la date
+  if (!timeSlot.is_recurring && timeSlot.specific_date) {
+    existingSlotQuery.eq('specific_date', timeSlot.specific_date);
+  } else if (timeSlot.is_recurring) {
+    existingSlotQuery.eq('is_recurring', true);
+  }
+
+  const { data: existingSlots, error: checkError } = await existingSlotQuery;
+  
+  if (checkError) {
+    console.error('Error checking existing slots:', checkError);
+    throw new Error(`Erreur lors de la vérification: ${checkError.message}`);
+  }
+
+  if (existingSlots && existingSlots.length > 0) {
+    throw new Error("Un créneau identique existe déjà pour cette période");
+  }
   
   const dbTimeSlot = mapToDbTimeSlot(timeSlot);
   console.log("Données mappées pour la base:", dbTimeSlot);

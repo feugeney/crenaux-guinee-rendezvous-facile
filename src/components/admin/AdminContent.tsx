@@ -12,7 +12,7 @@ import { ExpressBookings } from './ExpressBookings';
 import { StandardBookings } from './StandardBookings';
 import { UpcomingBookings } from './UpcomingBookings';
 import { PoliticalApplications } from './PoliticalApplications';
-import { Planning } from './Planning';
+import { RegisteredCandidates } from './RegisteredCandidates';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
@@ -43,7 +43,7 @@ export const AdminContent = () => {
           <Route path="bookings/upcoming" element={<UpcomingBookings />} />
           <Route path="political-program" element={<PoliticalProgramManagement />} />
           <Route path="political-program/applications" element={<PoliticalApplications />} />
-          <Route path="planning" element={<Planning />} />
+          <Route path="political-program/candidates" element={<RegisteredCandidates />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="settings" element={<AdminSettings />} />
         </Routes>

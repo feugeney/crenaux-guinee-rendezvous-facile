@@ -12,8 +12,7 @@ import {
   UserPlus,
   CheckCircle,
   FileText,
-  CalendarDays,
-  ClipboardList
+  CalendarDays
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -71,13 +70,13 @@ export const menuItems: MenuItem[] = [
         title: 'Validation des candidatures',
         url: '/admin/political-program/applications',
         icon: CheckCircle
+      },
+      {
+        title: 'Suivi des séances',
+        url: '/admin/political-program/candidates',
+        icon: FileText
       }
     ]
-  },
-  { 
-    title: 'Planning', 
-    url: '/admin/planning', 
-    icon: ClipboardList 
   },
   { 
     title: 'Rapports', 

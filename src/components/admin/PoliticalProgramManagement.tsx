@@ -106,6 +106,6 @@ export const PoliticalProgramManagement = () => {
           </div>
         </div>
       </div>
-    </ModernAdashboard>
+    </ModernAdminLayout>
   );
 };

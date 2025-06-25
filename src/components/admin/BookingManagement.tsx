@@ -9,7 +9,7 @@ import { useBookings } from './bookings/useBookings';
 import { ModernStatCard } from './cards/ModernStatCard';
 
 export const BookingManagement = () => {
-  const { bookings, isLoading } = useBookings();
+  const { bookings, loading } = useBookings();
 
   return (
     <ModernAdminLayout 

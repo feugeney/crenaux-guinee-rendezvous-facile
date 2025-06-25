@@ -1,268 +1,111 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { ModernAdminLayout } from './ModernAdminLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Flag, Edit, Trash2, Users } from 'lucide-react';
-import { toast } from 'sonner';
-
-interface PoliticalProgram {
-  id: string;
-  title: string;
-  description: string;
-  status: 'draft' | 'active' | 'completed';
-  participants: number;
-  startDate: string;
-  endDate: string;
-}
+import { Plus, Users, CheckCircle, FileText, Calendar } from 'lucide-react';
+import { ModernActionCard } from './cards/ModernActionCard';
+import { ModernStatCard } from './cards/ModernStatCard';
+import { useNavigate } from 'react-router-dom';
 
 export const PoliticalProgramManagement = () => {
-  const [programs, setPrograms] = useState<PoliticalProgram[]>([
-    {
-      id: '1',
-      title: 'Formation Leadership Politique',
-      description: 'Programme complet de formation au leadership politique pour les nouveaux candidats.',
-      status: 'active',
-      participants: 25,
-      startDate: '2024-01-15',
-      endDate: '2024-06-15'
-    },
-    {
-      id: '2',
-      title: 'Campagne Électorale 2024',
-      description: 'Préparation et accompagnement pour les élections municipales.',
-      status: 'active',
-      participants: 12,
-      startDate: '2024-02-01',
-      endDate: '2024-12-31'
-    }
-  ]);
-
-  const [showForm, setShowForm] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<PoliticalProgram | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    status: 'draft' as 'draft' | 'active' | 'completed',
-    startDate: '',
-    endDate: ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingProgram) {
-      setPrograms(programs.map(p => 
-        p.id === editingProgram.id 
-          ? { ...p, ...formData }
-          : p
-      ));
-      toast.success('Programme mis à jour');
-    } else {
-      const newProgram: PoliticalProgram = {
-        id: Date.now().toString(),
-        ...formData,
-        participants: 0
-      };
-      setPrograms([...programs, newProgram]);
-      toast.success('Programme créé');
-    }
-    
-    setShowForm(false);
-    setEditingProgram(null);
-    resetForm();
-  };
-
-  const handleEdit = (program: PoliticalProgram) => {
-    setEditingProgram(program);
-    setFormData({
-      title: program.title,
-      description: program.description,
-      status: program.status,
-      startDate: program.startDate,
-      endDate: program.endDate
-    });
-    setShowForm(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce programme ?')) {
-      setPrograms(programs.filter(p => p.id !== id));
-      toast.success('Programme supprimé');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      status: 'draft',
-      startDate: '',
-      endDate: ''
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Actif</span>;
-      case 'draft':
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Brouillon</span>;
-      case 'completed':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Terminé</span>;
-      default:
-        return null;
-    }
-  };
+  const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Programmes politiques</h1>
-          <p className="text-gray-600">Gérez vos programmes de formation et campagnes politiques</p>
-        </div>
-        <Button onClick={() => setShowForm(true)} className="bg-gold-600 hover:bg-gold-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau programme
+    <ModernAdminLayout 
+      title="Programme Politique"
+      subtitle="Gestion des candidatures et suivi des séances de coaching politique"
+      showBackButton
+      actions={
+        <Button className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Nouvelle Candidature
         </Button>
+      }
+    >
+      <div className="space-y-6">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <ModernStatCard
+            title="Candidatures Actives"
+            value="28"
+            icon={Users}
+            trend={{ value: "+18%", direction: "up" }}
+            description="En cours de traitement"
+            color="blue"
+          />
+          <ModernStatCard
+            title="En Attente"
+            value="8"
+            icon={FileText}
+            trend={{ value: "Urgent", direction: "neutral" }}
+            description="À valider"
+            color="orange"
+          />
+          <ModernStatCard
+            title="Approuvées"
+            value="156"
+            icon={CheckCircle}
+            trend={{ value: "+22%", direction: "up" }}
+            description="Candidatures validées"
+            color="green"
+          />
+          <ModernStatCard
+            title="Séances Planifiées"
+            value="45"
+            icon={Calendar}
+            trend={{ value: "+12%", direction: "up" }}
+            description="Sessions programmées"
+            color="purple"
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ModernActionCard
+            title="Validation des Candidatures"
+            description="Examiner et approuver les nouvelles candidatures"
+            icon={CheckCircle}
+            onClick={() => navigate('/admin/political-program/applications')}
+            color="green"
+            urgent={true}
+          />
+          <ModernActionCard
+            title="Suivi des Séances"
+            description="Planifier et suivre les sessions de coaching"
+            icon={FileText}
+            onClick={() => navigate('/admin/political-program/candidates')}
+            color="blue"
+          />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Activité Récente</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm">Nouvelle candidature approuvée</span>
+              </div>
+              <span className="text-xs text-gray-500">Il y a 2 heures</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm">Séance de coaching planifiée</span>
+              </div>
+              <span className="text-xs text-gray-500">Il y a 4 heures</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span className="text-sm">3 candidatures en attente</span>
+              </div>
+              <span className="text-xs text-gray-500">Il y a 6 heures</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingProgram ? 'Modifier le programme' : 'Nouveau programme'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Titre du programme</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="status">Statut</Label>
-                  <select
-                    id="status"
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value="draft">Brouillon</option>
-                    <option value="active">Actif</option>
-                    <option value="completed">Terminé</option>
-                  </select>
-                </div>
-
-                <div>
-                  <Label htmlFor="startDate">Date de début</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="endDate">Date de fin</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit" className="bg-gold-600 hover:bg-gold-700">
-                  {editingProgram ? 'Modifier' : 'Créer'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingProgram(null);
-                    resetForm();
-                  }}
-                >
-                  Annuler
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {programs.map((program) => (
-          <Card key={program.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Flag className="h-6 w-6 text-gold-600" />
-                  <div>
-                    <CardTitle className="text-lg">{program.title}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      {getStatusBadge(program.status)}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(program)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDelete(program.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">{program.description}</p>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span>{program.participants} participant(s)</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Du {new Date(program.startDate).toLocaleDateString('fr-FR')} 
-                  au {new Date(program.endDate).toLocaleDateString('fr-FR')}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+    </ModernAdashboard>
   );
 };

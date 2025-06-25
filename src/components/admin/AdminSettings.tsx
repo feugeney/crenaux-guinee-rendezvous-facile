@@ -1,207 +1,153 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { ModernAdminLayout } from './ModernAdminLayout';
 import { Button } from '@/components/ui/button';
+import { Save, Settings, Shield, Bell, Database, Mail } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Settings, Mail, Bell, Shield } from 'lucide-react';
-import { toast } from 'sonner';
 
 export const AdminSettings = () => {
-  const [settings, setSettings] = useState({
-    siteName: 'Plateforme de Consultation Politique',
-    siteDescription: 'Réservez vos consultations avec nos experts politiques',
-    contactEmail: 'contact@politique.fr',
-    notificationsEnabled: true,
-    emailNotifications: true,
-    autoConfirmBookings: false,
-    maxBookingsPerDay: 10,
-    bookingAdvanceNotice: 24
-  });
-
-  const handleSave = () => {
-    // Ici, vous sauvegarderiez les paramètres dans la base de données
-    toast.success('Paramètres sauvegardés');
-  };
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
-        <p className="text-gray-600">Configurez votre plateforme</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Paramètres généraux
-            </CardTitle>
-            <CardDescription>Configuration de base de la plateforme</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="siteName">Nom du site</Label>
-              <Input
-                id="siteName"
-                value={settings.siteName}
-                onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="siteDescription">Description</Label>
-              <Textarea
-                id="siteDescription"
-                value={settings.siteDescription}
-                onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="contactEmail">Email de contact</Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                value={settings.contactEmail}
-                onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
-              />
-            </div>
-
-            <Button onClick={handleSave} className="bg-gold-600 hover:bg-gold-700">
-              Sauvegarder
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notifications
-            </CardTitle>
-            <CardDescription>Gérez les notifications et alertes</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Notifications activées</Label>
-                <p className="text-sm text-gray-500">Recevoir les notifications système</p>
+    <ModernAdminLayout 
+      title="Paramètres Système"
+      subtitle="Configuration générale de l'application"
+      showBackButton
+      actions={
+        <Button className="flex items-center gap-2">
+          <Save className="h-4 w-4" />
+          Sauvegarder
+        </Button>
+      }
+    >
+      <div className="space-y-6">
+        {/* Settings Categories */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* General Settings */}
+          <Card className="shadow-lg border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-blue-600" />
+                Paramètres Généraux
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="site-name">Nom du Site</Label>
+                <Input id="site-name" placeholder="Coaching Politique Pro" />
               </div>
-              <Switch
-                checked={settings.notificationsEnabled}
-                onCheckedChange={(checked) => setSettings({ ...settings, notificationsEnabled: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Notifications par email</Label>
-                <p className="text-sm text-gray-500">Recevoir les alertes par email</p>
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Email Administrateur</Label>
+                <Input id="admin-email" type="email" placeholder="admin@example.com" />
               </div>
-              <Switch
-                checked={settings.emailNotifications}
-                onCheckedChange={(checked) => setSettings({ ...settings, emailNotifications: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Confirmation automatique</Label>
-                <p className="text-sm text-gray-500">Confirmer automatiquement les réservations</p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="maintenance">Mode Maintenance</Label>
+                <Switch id="maintenance" />
               </div>
-              <Switch
-                checked={settings.autoConfirmBookings}
-                onCheckedChange={(checked) => setSettings({ ...settings, autoConfirmBookings: checked })}
-              />
-            </div>
+            </CardContent>
+          </Card>
 
-            <Button onClick={handleSave} className="bg-gold-600 hover:bg-gold-700">
-              Sauvegarder
-            </Button>
-          </CardContent>
-        </Card>
+          {/* Security Settings */}
+          <Card className="shadow-lg border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-600" />
+                Sécurité
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="two-factor">Authentification 2FA</Label>
+                <Switch id="two-factor" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="auto-backup">Sauvegarde Auto</Label>
+                <Switch id="auto-backup" defaultChecked />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="session-timeout">Timeout Session (min)</Label>
+                <Input id="session-timeout" type="number" placeholder="30" />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
+          {/* Notification Settings */}
+          <Card className="shadow-lg border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-orange-600" />
+                Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="email-notif">Notifications Email</Label>
+                <Switch id="email-notif" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="booking-alerts">Alertes Réservations</Label>
+                <Switch id="booking-alerts" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="payment-alerts">Alertes Paiements</Label>
+                <Switch id="payment-alerts" defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Email Settings */}
+          <Card className="shadow-lg border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-purple-600" />
+                Configuration Email
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="smtp-server">Serveur SMTP</Label>
+                <Input id="smtp-server" placeholder="smtp.gmail.com" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="smtp-port">Port SMTP</Label>
+                <Input id="smtp-port" placeholder="587" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="smtp-ssl">SSL/TLS</Label>
+                <Switch id="smtp-ssl" defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* System Information */}
+        <Card className="shadow-lg border-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Réservations
+              <Database className="h-5 w-5 text-gray-600" />
+              Informations Système
             </CardTitle>
-            <CardDescription>Configuration des règles de réservation</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="maxBookings">Réservations max par jour</Label>
-              <Input
-                id="maxBookings"
-                type="number"
-                value={settings.maxBookingsPerDay}
-                onChange={(e) => setSettings({ ...settings, maxBookingsPerDay: parseInt(e.target.value) })}
-              />
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">v2.1.0</p>
+                <p className="text-sm text-gray-600">Version Application</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">99.9%</p>
+                <p className="text-sm text-gray-600">Disponibilité</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">1.2GB</p>
+                <p className="text-sm text-gray-600">Base de Données</p>
+              </div>
             </div>
-
-            <div>
-              <Label htmlFor="advanceNotice">Préavis minimum (heures)</Label>
-              <Input
-                id="advanceNotice"
-                type="number"
-                value={settings.bookingAdvanceNotice}
-                onChange={(e) => setSettings({ ...settings, bookingAdvanceNotice: parseInt(e.target.value) })}
-              />
-            </div>
-
-            <Button onClick={handleSave} className="bg-gold-600 hover:bg-gold-700">
-              Sauvegarder
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Configuration email
-            </CardTitle>
-            <CardDescription>Paramètres de l'envoi d'emails</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="smtpHost">Serveur SMTP</Label>
-              <Input
-                id="smtpHost"
-                placeholder="smtp.gmail.com"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="smtpPort">Port SMTP</Label>
-              <Input
-                id="smtpPort"
-                type="number"
-                placeholder="587"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="smtpUser">Utilisateur SMTP</Label>
-              <Input
-                id="smtpUser"
-                type="email"
-                placeholder="votre@email.com"
-              />
-            </div>
-
-            <Button onClick={handleSave} className="bg-gold-600 hover:bg-gold-700">
-              Tester et sauvegarder
-            </Button>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ModernAdminLayout>
   );
 };
